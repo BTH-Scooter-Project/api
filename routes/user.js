@@ -11,6 +11,7 @@ router.get("/", (req, res) => {
 });
 
 router.post("/", (req, res) => {
+    console.log(req.body);
     res.status(201).json({
         data: {
             msg: "Got a POST request, sending back 201 Created"
