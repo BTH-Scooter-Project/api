@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
     "start_edit": "nodemon app.js",
+    "eslint": "eslint .",
     "production": "NODE_ENV='production' node app.js"
   },
   "author": "",
@@ -15,5 +16,9 @@
     "express": "^4.17.1",
     "morgan": "^1.10.0",
     "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.3.0",
+    "javascript-style-guide": "^1.0.1"
   }
 }

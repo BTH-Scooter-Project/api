@@ -5,7 +5,7 @@
 const database = require("../db/database.js");
 
 const data = {
-    getAllData: function (res, req) {
+    getAllData: function (res) {
         let db;
 
         db = database.getDb();
@@ -25,9 +25,8 @@ const data = {
             }
             res.status(200).json({
                 "data": rows
-            })
+            });
         });
-
     },
     getSpecificRow: function (res, req) {
         let db;
@@ -35,16 +34,17 @@ const data = {
         db = database.getDb();
 
         console.log("id: " + req.params.id);
-        var sql ='SELECT * from tbl1 WHERE rowid = ?';
+        var sql ='SELECT * from tbl1 WHERE rowid = ?;';
         var params =[req.params.id];
+
         db.get(sql, params, function (err, row) {
-            if (err){
-                res.status(400).json({"error": err.message})
+            if (err) {
+                res.status(400).json({"error": err.message});
                 return;
             }
             res.status(200).json({
                 "data": row
-            })
+            });
         });
     },
     addData: function (res, req) {
@@ -53,34 +53,34 @@ const data = {
         db = database.getDb();
 
         var errors=[];
-        if (!req.body.one){
+
+        if (!req.body.one) {
             errors.push("Column 1 not specified");
         }
-        if (!req.body.two){
+        if (!req.body.two) {
             errors.push("Column 2 not specified");
         }
-        if (errors.length){
-            res.status(400).json({"error":errors.join(",")});
+        if (errors.length) {
+            res.status(400).json({"error": errors.join(",")});
             return;
         }
         var data = {
             one: req.body.one,
             two: req.body.two
-        }
-        var sql ='INSERT INTO tbl1 (one, two) VALUES (?,?)'
-        var params =[data.one, data.two]
-        db.run(sql, params, function (err, result) {
-            if (err){
-                res.status(400).json({"error": err.message})
-                return;
+        };
+        var sql ='INSERT INTO tbl1 (one, two) VALUES (?,?);';
+        var params =[data.one, data.two];
+
+        db.run(sql, params, function (err) {
+            if (err) {
+                return res.status(400).json({ "error": err.message });
             }
-            res.status(201).json({
+            return res.status(201).json({
                 "message": "row added",
                 "data": data,
-                "id" : this.lastID
-            })
+                "id": this.lastID
+            });
         });
-
     }
 };
 

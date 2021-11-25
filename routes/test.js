@@ -1,11 +1,10 @@
 var express = require('express');
 var router = express.Router();
-const sqlite3 = require('sqlite3').verbose();
 const database = require("../db/database.js");
 const data = require("../models/data.js");
 
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
     const data = {
         data: {
             msg: "Hello World"
@@ -21,7 +20,7 @@ router.get('/data', (req, res) => data.getAllData(res, req));
 
 router.post('/data', (req, res) => data.addData(res, req));
 
-router.get('/db', function(req, res, next) {
+router.get('/db', function(req, res) {
     //testing opening the test-db
     let db;
 
@@ -30,12 +29,12 @@ router.get('/db', function(req, res, next) {
     let sql = `SELECT * FROM tbl1;`;
 
     db.all(sql, [], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      rows.forEach((row) => {
-        console.log(row.one);
-      });
+        if (err) {
+            throw err;
+        }
+        rows.forEach((row) => {
+            console.log(row.one);
+        });
     });
 
     db.close();

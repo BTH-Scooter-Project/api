@@ -42,6 +42,7 @@ app.use('/test', test);
 // keep this last of all routes
 app.use((req, res, next) => {
     var err = new Error("Not Found");
+
     err.status = 404;
     next(err);
 });
