@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const database = require("../db/database.js");
-const data = require("../models/data.js");
+const database = require("../db/testDatabase.js");
+const data = require("../models/testData.js");
 
 
 router.get('/', function(req, res) {

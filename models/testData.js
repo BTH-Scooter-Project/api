@@ -2,9 +2,9 @@
  * planning on adding data to retrieve cities, stations, bikes etc
  *
 */
-const database = require("../db/database.js");
+const database = require("../db/testDatabase.js");
 
-const data = {
+const testData = {
     getAllData: function (res) {
         let db;
 
@@ -84,4 +84,4 @@ const data = {
     }
 };
 
-module.exports = data;
+module.exports = testData;

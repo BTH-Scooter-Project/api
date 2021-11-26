@@ -8,6 +8,7 @@ const port = 1337;
 const index = require('./routes/index');
 const user = require('./routes/user');
 const test = require('./routes/test');
+const bike = require('./routes/bike');
 
 //Om man vill använda sig av parametrar tillsammans med
 //HTTP metoderna POST, PUT och DELETE
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
 app.use('/', index);
 app.use('/user', user);
 app.use('/test', test);
+app.use('/v1/bike', bike);
 
 // Add routes for 404 and error handling
 // Catch 404 and forward to error handler
