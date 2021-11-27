@@ -13,21 +13,21 @@ See https://rem.dbwebb.se/ and https://developerhowto.com/2018/12/29/build-a-res
 
 Test-routes
 -------------
-For example routes connected to test2.db established in db/testDatabase
-
-In folder *routes* there are two files **test.js** and **user.js** that contain example of routes.
+In folder *routes* there are two files **test.js** and **user.js** that contain example of routes. These
+can be used without providing an api-key.
 
 The file **test.js** contains connection to the sqlite database **test2.db** with connection
-established in the file **db/database.js**.
+established in the file **db/testDatabase.js**.
 
 Routes to try out
 ------------------
+- GET /test/ - only shows some basic info about test-routes
 - GET /test/db (get all test-data)
 - GET /test/db/<id> (get row with id <id>)
 - POST /test/db (post data, require body in: **one**: string, **two**: int)
 
 To try out GET/POST/PUT/DELETE and status codes (no parameters in required):
-- GET **/user**
-- POST **/user**
-- PUT **/user**
-- DELETE **/user**
+- GET **/user/**
+- POST **/user/**
+- PUT **/user/**
+- DELETE **/user/**

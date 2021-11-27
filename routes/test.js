@@ -3,16 +3,21 @@ var router = express.Router();
 const database = require("../db/testDatabase.js");
 const data = require("../models/testData.js");
 
-
 router.get('/', function(req, res) {
-    const data = {
-        data: {
-            msg: "Hello World"
-        }
-    };
+    let sendStr = `<h1>These are the routes for testing the api</h1>
+            <p>Possible routes include:</p>
+            /test/data <br>
+            /test/data/&#60;id&#62; <br>
+            /test/hello/&#60;msg&#62; <br>
+            /test/hello/&#60;msg&#62;/test`;
 
-    res.json(data);
+    res.send(sendStr);
 });
+
+// router.get('/',
+//     (req, res, next) => auth.checkToken(req, res, next),
+//     (req, res) => data.updateData(res, req)
+// );
 
 router.get('/data/:id', (req, res) => data.getSpecificRow(res, req));
 

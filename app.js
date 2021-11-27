@@ -3,12 +3,21 @@ const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const app = express();
 const port = 1337;
+const path = require('path');
 
 //add files for different routes
 const index = require('./routes/index');
 const user = require('./routes/user');
 const test = require('./routes/test');
 const bike = require('./routes/bike');
+
+
+/* TODO implementera för att kolla api-key på alla routes */
+const authModel = require("./models/auth.js");
+
+
+
+
 
 //Om man vill använda sig av parametrar tillsammans med
 //HTTP metoderna POST, PUT och DELETE
@@ -29,6 +38,9 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(express.static(path.join(__dirname, "public")));
+//all routes require api
+app.all('*', authModel.checkAPIKey);
 
 /**
  * Add routes

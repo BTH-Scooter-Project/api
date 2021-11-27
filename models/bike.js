@@ -5,7 +5,9 @@
 const database = require("../db/database.js");
 
 const bike = {
-    //get all bikes
+    /*
+        get all bikes
+    */
     getAllBikes: function (res) {
         let db;
 
