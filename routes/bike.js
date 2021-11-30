@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const bike = require("../models/bike.js");
+const bikeModel = require("../models/bike.js");
 
 router.get('/', function(req, res) {
     const data = {
@@ -12,7 +12,7 @@ router.get('/', function(req, res) {
     res.json(data);
 });
 
-router.get('/:id', (req, res) => bike.getSpecificBike(res, req));
+router.get('/:id', (req, res) => bikeModel.getSpecificBike(res, req));
 
 
 module.exports = router;
