@@ -11,6 +11,7 @@ const user = require('./routes/user');
 const test = require('./routes/test');
 const bike = require('./routes/bike');
 const auth = require('./routes/auth');
+const city = require('./routes/city');
 
 
 /* TODO implementera för att kolla api-key på alla routes */
@@ -52,6 +53,7 @@ app.use('/user', user);
 app.use('/test', test);
 app.use('/v1/bike', bike);
 app.use('/v1/auth', auth);
+app.use('/v1/city', city);
 
 // Add routes for 404 and error handling
 // Catch 404 and forward to error handler

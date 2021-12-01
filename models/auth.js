@@ -15,7 +15,7 @@ try {
     console.error(error);
 }
 
-const secret = process.env.JWT_SECRET || config.secret;
+const jwtSecret = process.env.JWT_SECRET || config.jwt_secret;
 const apikey = process.env.API_KEY || config.apikey;
 
 const auth = {
@@ -99,7 +99,7 @@ const auth = {
 
             if (result) {
                 let payload = { email: user.email };
-                let jwtToken = jwt.sign(payload, secret, { expiresIn: '1h' });
+                let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
 
                 //if password is correct, return jwt token
                 return res.json({
@@ -197,6 +197,45 @@ const auth = {
                 });
             });
         });
+    },
+
+    /**
+     * check if token is correct and valid
+     *
+    */
+    checkToken: function(req, res, next) {
+        let token = req.headers['x-access-token'];
+        // let apiKey = req.query.api_key || req.body.api_key;
+
+        if (token) {
+            jwt.verify(token, jwtSecret, function(err, decoded) {
+                if (err) {
+                    return res.status(500).json({
+                        errors: {
+                            status: 500,
+                            source: req.path,
+                            title: "Failed authentication",
+                            detail: err.message
+                        }
+                    });
+                }
+
+                req.user = {};
+                // req.user.api_key = apiKey;
+                req.user.email = decoded.email;
+
+                return next();
+            });
+        } else {
+            return res.status(401).json({
+                errors: {
+                    status: 401,
+                    source: req.path,
+                    title: "No token",
+                    detail: "No token provided in request headers"
+                }
+            });
+        }
     },
 
     /**
