@@ -16,26 +16,36 @@ try {
 }
 
 const jwtSecret = process.env.JWT_SECRET || config.jwt_secret;
+const jwtSecretStaff = process.env.STAFF_JWT_SECRET || config.staff_jwt_secret;
 const apikey = process.env.API_KEY || config.apikey;
 
 const auth = {
     /**
-     * login user if email + password
+     * login staff if email + password
      * exists in the db
     */
-    login: async function (res, body) {
+    loginStaff: async function (res, req) {
+        req.staff = true;
+        return auth.login(res, req);
+    },
+
+    /**
+     * login user or staff if email + password
+     * exists in the db
+    */
+    login: async function (res, req) {
         let db;
 
         db = database.getDb();
 
-        const email = body.email;
-        const password = body.password;
+        const email = req.body.email;
+        const password = req.body.password;
 
         if (!email || !password) {
             return res.status(401).json({
                 errors: {
                     status: 401,
-                    source: "/auth/login",
+                    source: `/v1/auth${req.path}`,
                     title: "Email or password missing",
                     detail: "Email or password missing in request"
                 }
@@ -43,6 +53,12 @@ const auth = {
         }
 
         var sql ='SELECT * from customer WHERE email = ?;';
+
+        //if staff, check in other table in DB
+        if (req.staff) {
+            sql = 'SELECT * from staff WHERE email = ?;';
+        }
+
         var params =[email];
 
         //check if user exists in customer table
@@ -51,7 +67,7 @@ const auth = {
                 return res.status(400).json({
                     errors: {
                         status: 400,
-                        path: `/auth/login`,
+                        path: `/v1/auth${req.path}`,
                         title: "Bad request",
                         message: err.message
                     }
@@ -65,13 +81,15 @@ const auth = {
                     res,
                     password,
                     row,
+                    req.staff,
+                    req.path
                 );
             }
 
             return res.status(401).json({
                 errors: {
                     status: 401,
-                    source: "/auth/login",
+                    source: `/v1/auth${req.path}`,
                     title: "User not found",
                     detail: "User with provided email not found."
                 }
@@ -83,14 +101,14 @@ const auth = {
      * check if user input password matches the password in the DB
      *
     */
-    comparePasswords: function(res, password, user) {
+    comparePasswords: function(res, password, user, staff, path) {
         // console.log("inside comparePasswords");
         bcrypt.compare(password, user.password, (err, result) => {
             if (err) {
                 return res.status(500).json({
                     errors: {
                         status: 500,
-                        source: "/auth/login",
+                        source: `/v1/auth${path}`,
                         title: "bcrypt error",
                         detail: "bcrypt error"
                     }
@@ -98,7 +116,23 @@ const auth = {
             }
 
             if (result) {
-                let payload = { email: user.email };
+                //if staff, compare with other jwtToken.
+                if (staff) {
+                    let payload = { email: user.email, id: user.staffid };
+                    let jwtToken = jwt.sign(payload, jwtSecretStaff, { expiresIn: '1h' });
+
+                    //if password is correct, return jwt token
+                    return res.json({
+                        data: {
+                            type: "success",
+                            message: "Admin logged in",
+                            user: user.email,
+                            token: jwtToken
+                        }
+                    });
+                }
+                //else try login customer
+                let payload = { email: user.email, id: user.userid };
                 let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
 
                 //if password is correct, return jwt token
@@ -115,7 +149,7 @@ const auth = {
             return res.status(401).json({
                 errors: {
                     status: 401,
-                    source: "/auth/login",
+                    source: `/v1/auth${path}`,
                     title: "Wrong password",
                     detail: "Password is incorrect."
                 }
@@ -126,15 +160,15 @@ const auth = {
      * register new user with email + password
      * password is encrypted with bcrypt
     */
-    register: async function (res, body) {
+    register: async function (res, req) {
         let db;
 
         db = database.getDb();
 
-        const password = body.password;
+        const password = req.body.password;
 
         const data = {
-            email: body.email,
+            email: req.body.email,
             firstName: "Test",
             lastName: "Testsson",
             city: "Stockholm"
@@ -152,7 +186,7 @@ const auth = {
             return res.status(400).json({
                 errors: {
                     status: 400,
-                    source: "/auth/register",
+                    source: `/v1/auth${req.path}`,
                     message: "Missing input",
                     detail: errors.join(",")
                 }
@@ -165,7 +199,7 @@ const auth = {
                 return res.status(500).json({
                     errors: {
                         status: 500,
-                        source: "/register",
+                        source: `/v1/auth${req.path}`,
                         title: "bcrypt error",
                         detail: "bcrypt error"
                     }
@@ -182,6 +216,82 @@ const auth = {
                     return res.status(400).json({
                         errors: {
                             status: 400,
+                            source: `/v1/auth${req.path}`,
+                            message: "Error creating user",
+                            detail: err.message
+                        }
+                    });
+                }
+                return res.status(201).json({
+                    data: {
+                        type: "success",
+                        message: "User created",
+                        user: data.email,
+                        id: this.lastID
+                    }
+                });
+            });
+        });
+    },
+
+    /**
+     * register new staff with email + password
+     * password is encrypted with bcrypt
+    */
+    registerStaff: async function (res, req) {
+        let db;
+
+        db = database.getDb();
+
+        const password = req.body.password;
+
+        const data = {
+            email: req.body.email
+        };
+
+        var errors=[];
+
+        if (!data.email) {
+            errors.push("Email not specified");
+        }
+        if (!password) {
+            errors.push("Password not specified");
+        }
+        if (errors.length) {
+            return res.status(400).json({
+                errors: {
+                    status: 400,
+                    source: `/v1/auth${req.path}`,
+                    message: "Missing input",
+                    detail: errors.join(",")
+                }
+            });
+        }
+
+        //encrypt incoming password
+        bcrypt.hash(password, 10, async function(err, hash) {
+            if (err) {
+                return res.status(500).json({
+                    errors: {
+                        status: 500,
+                        source: `/v1/auth${req.path}`,
+                        title: "bcrypt error",
+                        detail: "bcrypt error"
+                    }
+                });
+            }
+
+            var sql = `INSERT into staff
+                        (password, email)
+                        values (?, ?);`;
+            var params =[hash, data.email];
+
+            db.run(sql, params, function (err) {
+                if (err) {
+                    return res.status(400).json({
+                        errors: {
+                            status: 400,
+                            path: `/v1/auth${req.path}`,
                             message: "Error creating user",
                             detail: err.message
                         }
@@ -203,17 +313,31 @@ const auth = {
      * check if token is correct and valid
      *
     */
+    checkStaffToken: function(req, res, next) {
+        req.staff = true;
+        return auth.checkToken(req, res, next);
+    },
+
+    /**
+     * check if token is correct and valid
+     *
+    */
     checkToken: function(req, res, next) {
         let token = req.headers['x-access-token'];
         // let apiKey = req.query.api_key || req.body.api_key;
 
+        let currentSecret;
+
+        //if staff, check against staff-jwt-secret, else against the customer secret
+        req.staff ? currentSecret = jwtSecretStaff : currentSecret = jwtSecret;
+
         if (token) {
-            jwt.verify(token, jwtSecret, function(err, decoded) {
+            jwt.verify(token, currentSecret, function(err, decoded) {
                 if (err) {
                     return res.status(500).json({
                         errors: {
                             status: 500,
-                            source: req.path,
+                            source: `/v1/auth${req.path}`,
                             title: "Failed authentication",
                             detail: err.message
                         }
@@ -223,6 +347,7 @@ const auth = {
                 req.user = {};
                 // req.user.api_key = apiKey;
                 req.user.email = decoded.email;
+                req.user.id = decoded.id;
 
                 return next();
             });
@@ -230,7 +355,7 @@ const auth = {
             return res.status(401).json({
                 errors: {
                     status: 401,
-                    source: req.path,
+                    source: `/v1/auth${req.path}`,
                     title: "No token",
                     detail: "No token provided in request headers"
                 }
