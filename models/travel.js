@@ -45,11 +45,12 @@ const travel = {
             }
             //check if row exists ie id exists, otherwise no travels has occurred
             if (rows) {
-                if (rows.length == 0) {
-                    return res.status(200).json({
-                        "data": "No travels to show yet."
-                    });
-                }
+                //if a message should be sent when there are no travels:
+                // if (rows.length == 0) {
+                //     return res.status(200).json({
+                //         "data": "No travels to show yet."
+                //     });
+                // }
                 return res.status(200).json({
                     "data": rows
                 });

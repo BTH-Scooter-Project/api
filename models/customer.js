@@ -48,7 +48,7 @@ const customer = {
             return res.status(400).json({
                 errors: {
                     status: 401,
-                    path: `/v1/auth${req.params.id}`,
+                    path: `/v1/auth${req.path}`,
                     title: "Unauthorized",
                     message: "Current user is not authorized to view data from other users",
                 }
@@ -63,7 +63,7 @@ const customer = {
                 return res.status(400).json({
                     errors: {
                         status: 400,
-                        path: `/v1/auth${req.params.id}`,
+                        path: `/v1/auth${req.path}`,
                         title: "Bad request",
                         message: err.message
                     }
@@ -77,7 +77,7 @@ const customer = {
                 : res.status(404).json({
                     errors: {
                         status: 404,
-                        path: `/v1/auth${req.params.id}`,
+                        path: `/v1/auth${req.path}`,
                         title: "Not found",
                         message: "The customer is not found"
                     }
