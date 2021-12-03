@@ -20,7 +20,7 @@ const bike = {
                 return res.status(400).json({
                     errors: {
                         status: 400,
-                        path: "/bike",
+                        path: `/bike${req.path}`,
                         title: "Bad request",
                         message: err.message
                     }
@@ -45,7 +45,7 @@ const bike = {
                 return res.status(400).json({
                     errors: {
                         status: 400,
-                        path: `/bike/${req.params.id}`,
+                        path: `/bike${req.path}`,
                         title: "Bad request",
                         message: err.message
                     }
@@ -59,7 +59,7 @@ const bike = {
                 : res.status(404).json({
                     errors: {
                         status: 404,
-                        path: `/bike/${req.params.id}`,
+                        path: `/bike${req.path}`,
                         title: "Not found",
                         message: "The bike is not found"
                     }
