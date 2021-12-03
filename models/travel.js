@@ -4,6 +4,8 @@
 */
 const database = require("../db/database.js");
 
+let queue = [];
+
 const travel = {
     /*
         get all travels for a certain customer
@@ -63,6 +65,48 @@ const travel = {
                     message: "Customer not found"
                 }
             });
+        });
+    },
+    /*
+        rent a bike, add customer id + bike id to queue
+    */
+    addCustomerTravel: function (res, req) {
+        let db;
+
+        db = database.getDb();
+        //check which customer is logged in
+        // let loggedInCustomerId = req.user.id;
+        let loggedInCustomerId = req.body.userid;
+
+        let bikeId = req.body.bikeid;
+
+        let newEvent = {customerid: loggedInCustomerId, bikeid: bikeId};
+
+        queue.unshift(newEvent);
+        console.log("added travel:");
+        console.log(queue);
+
+        return res.status(201).json({
+            data: {
+                type: "success",
+                message: "Bike rented"
+            }
+        });
+    },
+
+    /*
+        remove event from queue
+    */
+    removeCustomerTravel: function (res, req) {
+        queue.pop();
+        console.log("after removal:");
+        console.log(queue);
+
+        return res.status(204).json({
+            data: {
+                type: "success",
+                message: "bike removed"
+            }
         });
     }
 };
