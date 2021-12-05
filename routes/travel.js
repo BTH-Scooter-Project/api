@@ -3,22 +3,28 @@ var router = express.Router();
 const authModel = require("../models/auth.js");
 const travelModel = require("../models/travel.js");
 
-//visa alla kunder - endast inloggad personal/staff
+//show logged in customer's travels
 router.get('/customer/:id',
     (req, res, next) => authModel.checkToken(req, res, next),
     (req, res) => travelModel.getCustomerTravel(res, req)
 );
 
-//visa alla kunder - endast inloggad personal/staff
-router.post('/',
-    // (req, res, next) => authModel.checkToken(req, res, next),
-    (req, res) => travelModel.addCustomerTravel(res, req)
+
+//logged in customer can rent a bike
+router.post('/bike/:bikeid',
+    (req, res, next) => authModel.checkToken(req, res, next),
+    (req, res) => travelModel.rentBike(res, req)
 );
 
-//visa alla kunder - endast inloggad personal/staff
-router.delete('/',
-    // (req, res, next) => authModel.checkToken(req, res, next),
-    (req, res) => travelModel.removeCustomerTravel(res, req)
+//logged in customer can return bike / end renting period of bike
+router.delete('/bike/:bikeid',
+    (req, res, next) => authModel.checkToken(req, res, next),
+    (req, res) => travelModel.returnBike(res, req)
 );
 
+
+//get all bikeids from rentQueue, empty queue
+router.get('/rented',
+    (req, res) => travelModel.getRentQueue(res)
+);
 module.exports = router;

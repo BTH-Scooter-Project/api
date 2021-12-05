@@ -4,7 +4,9 @@
 */
 const database = require("../db/database.js");
 
-let queue = [];
+let rentQueue = [];
+let cancelQueue = [];
+let rentList = [];
 
 const travel = {
     /*
@@ -70,21 +72,29 @@ const travel = {
     /*
         rent a bike, add customer id + bike id to queue
     */
-    addCustomerTravel: function (res, req) {
-        let db;
-
-        db = database.getDb();
+    rentBike: function (res, req) {
         //check which customer is logged in
-        // let loggedInCustomerId = req.user.id;
-        let loggedInCustomerId = req.body.userid;
+        let loggedInCustomerId = req.user.id;
+        let cityId = req.user.cityid;
+        let bikeId = req.params.bikeid;
 
-        let bikeId = req.body.bikeid;
+        /* Check if bike is available!? */
 
-        let newEvent = {customerid: loggedInCustomerId, bikeid: bikeId};
+        // let loggedInCustomerId = req.body.userid;
+        // let cityId = req.body.cityid;
 
-        queue.unshift(newEvent);
-        console.log("added travel:");
-        console.log(queue);
+        let newEvent = {
+            customerid: loggedInCustomerId,
+            bikeid: bikeId,
+            cityid: cityId,
+            timestamp: Date.now()
+        };
+
+        rentQueue.unshift(newEvent);
+        // console.log("added travel:");
+        // console.log(rentQueue);
+
+        console.log(rentQueue);
 
         return res.status(201).json({
             data: {
@@ -95,20 +105,123 @@ const travel = {
     },
 
     /*
-        remove event from queue
+        route returns all newly rented bikes,
+        empties that queue and add those bikes to
+        the rent-list. Ie:
+        - store all bikeids in a temporary array
+        - copy data from rentQueue to rentList
+        - empty rentQueue
+        - return all bikeid's from rentQueue
     */
-    removeCustomerTravel: function (res, req) {
-        queue.pop();
-        console.log("after removal:");
-        console.log(queue);
+    getRentQueue: function(res) {
+        //temporary array for bikeids
+        let bikeids = [];
 
-        return res.status(204).json({
-            data: {
-                type: "success",
-                message: "bike removed"
+        //add bikeids to temporary array,
+        //add rentQueue objects to rentList
+        rentQueue.map(element => {
+            bikeids.push(element.bikeid);
+            rentList.push(element);
+        });
+
+        //empty rentQueue
+        rentQueue = [];
+
+        console.log(rentList);
+
+        //return list of bikeids
+        return res.status(200).json(bikeids);
+    },
+    /*
+        customer ends bike rental
+    */
+    returnBike: function (res, req) {
+        let loggedInCustomerId = req.user.id;
+        let bikeId = req.params.bikeid;
+
+        //check if bike is in rentList
+        let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
+
+        console.log(rentList);
+
+        if (bikeIndex < 0) {
+            return res.status(404).json({
+                errors: {
+                    status: 404,
+                    path: `/v1/travel${req.path}`,
+                    title: "Not found",
+                    message: "Bike not found"
+                }
+            });
+        }
+
+        //check that logged in customer is the same as the one
+        //who had rented the bike in question
+        if (rentList[bikeIndex].customerid == loggedInCustomerId) {
+            let newEvent = {
+                bikeId
+            };
+
+            //add bike to queue of canceled bikes
+            cancelQueue.unshift(newEvent);
+
+            return res.status(201).json({
+                data: {
+                    type: "success",
+                    message: "Bike returned"
+                }
+            });
+        }
+
+        console.log(cancelQueue);
+
+        return res.status(404).json({
+            errors: {
+                status: 404,
+                path: `/v1/travel${req.path}`,
+                title: "Not found",
+                message: `This customer has not rented bike with id ${bikeId}`
             }
         });
-    }
+    },
+
+
+    /*
+        Update bike info
+        If canceled = true then remove bike
+        from rent-list
+    */
+    // updateBike: function (res, req) {
+    //     let bikeId = req.body.bikeid;
+    //     let canceled = req.body.canceled;
+    //
+    //     //check if bike is in rentList
+    //     let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
+    //
+    //     if (bikeIndex < 0) {
+    //         return res.status(404).json({
+    //             errors: {
+    //                 status: 404,
+    //                 path: `/v1/travel${req.path}`,
+    //                 title: "Not found",
+    //                 message: "Bike not found"
+    //             }
+    //         });
+    //     }
+    //
+    //     console.log(bike info:);
+    //     console.log(rentList[bikeIndex]);
+    //
+    //     //remove from rent-list
+    //     rentList.splice(bikeIndex, 1);
+    //
+    //     return res.status(201).json({
+    //         data: {
+    //             type: "success",
+    //             message: "Bike returned"
+    //         }
+    //     });
+    // }
 };
 
 module.exports = travel;

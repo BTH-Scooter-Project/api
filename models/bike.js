@@ -8,7 +8,7 @@ const bike = {
     /*
         get all bikes
     */
-    getAllBikes: function (res) {
+    getAllBikes: function (res, req) {
         let db;
 
         db = database.getDb();
