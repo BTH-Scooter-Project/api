@@ -67,8 +67,10 @@ const city = {
         let cityId = req.params.id;
 
         db = database.getDb();
+        var sql = `select name, image, description, status,
+        battery_level, gps_lat, gps_lon from bike
+        where cityid = ?;`
 
-        var sql ='SELECT * from BIKE WHERE cityid=?;';
         var params =[cityId];
 
         db.all(sql, [params], (err, rows) => {

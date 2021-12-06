@@ -17,10 +17,10 @@ DROP TABLE IF EXISTS log;
 CREATE TABLE "city" (
 	"cityid"	INTEGER,
 	"name"	TEXT,
-	"gps_left_lat"	BLOB,
-	"gps_left_lon"	BLOB,
-	"gps_right_lat"	BLOB,
-	"gps_right_lon"	BLOB,
+	"gps_left_lat"	REAL,
+	"gps_left_lon"	REAL,
+	"gps_right_lat"	REAL,
+	"gps_right_lon"	REAL,
 	PRIMARY KEY("cityid" AUTOINCREMENT)
 );
 INSERT INTO city (name, gps_left_lat, gps_left_lon, gps_right_lat, gps_right_lon) VALUES ('Sundsvall', 123.42, 345.678, NULL, NULL);
@@ -33,30 +33,14 @@ CREATE TABLE "station" (
 	"type"	TEXT,
 	"address"	TEXT,
 	"cityid"	INTEGER,
-	"gps_lat"	BLOB,
-	"gps_lon"	BLOB,
+	"gps_lat"	REAL,
+	"gps_lon"	REAL,
 	FOREIGN KEY("cityid") REFERENCES "city"("cityid"),
 	PRIMARY KEY("stationid" AUTOINCREMENT)
 );
 INSERT INTO station (type, address, cityid, gps_lat, gps_lon) VALUES ('parking', 'Fakegatan', 2, 456.456, 500.5);
 INSERT INTO station (type, address, cityid, gps_lat, gps_lon) VALUES ('charge', 'Gatuhörn', 3, 500.5, 600.6);
 
-
--- Table: availability
-CREATE TABLE "availability" (
-	"bikeid"	INTEGER,
-	"stationid"	INTEGER DEFAULT -1,
-	"status"	TEXT DEFAULT 'vacant',
-	"battery_capacity"	NUMERIC DEFAULT 5000,
-	"gps_lat"	BLOB,
-	"gps_lon"	BLOB,
-	FOREIGN KEY("stationid") REFERENCES "station"("stationid"),
-	PRIMARY KEY("bikeid" AUTOINCREMENT)
-);
-INSERT INTO availability (stationid, status, battery_capacity, gps_lat, gps_lon) VALUES (1, 'vacant', 5000, NULL, NULL);
-INSERT INTO availability (stationid, status, battery_capacity, gps_lat, gps_lon) VALUES (2, 'vacant', 900, NULL, NULL);
-INSERT INTO availability (stationid, status, battery_capacity, gps_lat, gps_lon) VALUES (1, 'vacant', 4200, NULL, NULL);
-INSERT INTO availability (stationid, status, battery_capacity, gps_lat, gps_lon) VALUES (2, 'vacant', 7500, NULL, NULL);
 
 -- Table: bike
 CREATE TABLE "bike" (
@@ -66,16 +50,22 @@ CREATE TABLE "bike" (
 	"description"	TEXT,
 	"max_speed"	TEXT,
 	"battery_capacity"	TEXT,
+	"status"	TEXT DEFAULT 'vacant',
+	"battery_level"	NUMERIC DEFAULT 5000,
+	"gps_lat"	REAL,
+	"gps_lon"	REAL,
+	"stationid"	INTEGER DEFAULT -1,
 	"cityid"	TEXT,
 	PRIMARY KEY("bikeid" AUTOINCREMENT),
-	FOREIGN KEY("cityid") REFERENCES "city"("cityid")
+	FOREIGN KEY("cityid") REFERENCES "city"("cityid"),
+	FOREIGN KEY("stationid") REFERENCES "station"("stationid")
 );
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, cityid) VALUES ('cykel1', 'redBike.jpg', 'En klassisk röd cykel', '12', '10000', 3);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, cityid) VALUES ('cykel2', 'greenBike.jpg', 'En grön cykel med fart', '50', '12000', 2);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, cityid) VALUES ('cykel3', 'puprleBike.jpg', 'En liten lila cykel', '10', '9000', 1);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, cityid) VALUES ('cykel4', 'blueBike.jpg', 'En blå cykel utmärkt för terräng', '15', '8000', 3);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, cityid) VALUES ('cykel5', 'yellowBike.jpg', 'En gul cykel helt enkelt', '13', '9000', 2);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, cityid) VALUES ('cykel6', 'pinkBike.jpg', 'En rosa cykel', '11', '9500', 2);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel1', 'redBike.jpg', 'En klassisk röd cykel', '12', '10000', 'vacant', 5000, NULL, NULL, 1, 3);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel2', 'greenBike.jpg', 'En grön cykel med fart', '50', '12000', 'vacant', 900, NULL, NULL, 2, 2);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel3', 'puprleBike.jpg', 'En liten lila cykel', '10', '9000', 'vacant', 4200, NULL, NULL, 1, 1);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel4', 'blueBike.jpg', 'En blå cykel utmärkt för terräng', '15', '8000', 'vacant', 7500, NULL, NULL, 2, 3);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel5', 'yellowBike.jpg', 'En gul cykel helt enkelt', '13', '9000', 'vacant', 7500, NULL, NULL, 1, 2);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel6', 'pinkBike.jpg', 'En rosa cykel', '11', '9500', 'vacant', 2000, NULL, NULL, 2, 1);
 
 
 -- Table: customer
@@ -84,7 +74,7 @@ CREATE TABLE "customer" (
 	"firstname"	TEXT,
 	"lastname"	TEXT,
 	"password"	TEXT,
-	"email"	INTEGER,
+	"email"		TEXT,
 	"cityid"	TEXT,
 	"payment"	TEXT,
 	"balance"	NUMERIC,
@@ -133,10 +123,10 @@ CREATE TABLE "travel_history" (
 	"userid"	INTEGER,
 	"distance"	REAL,
 	"price"	NUMERIC,
-	"start_pos_lat"	BLOB,
-	"start_pos_lon"	BLOB,
-	"stop_pos_lat"	BLOB,
-	"stop_pos_lon"	BLOB,
+	"start_pos_lat"	REAL,
+	"start_pos_lon"	REAL,
+	"stop_pos_lat"	REAL,
+	"stop_pos_lon"	REAL,
 	FOREIGN KEY("userid") REFERENCES "customer"("userid"),
 	FOREIGN KEY("bikeid") REFERENCES "bike"("bikeid"),
 	PRIMARY KEY("travelid" AUTOINCREMENT)
