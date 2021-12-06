@@ -310,7 +310,7 @@ const auth = {
     },
 
     /**
-     * check if token is correct and valid
+     * check if staff-token is correct and valid
      *
     */
     checkStaffToken: function(req, res, next) {

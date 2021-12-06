@@ -74,14 +74,17 @@ const travel = {
     */
     rentBike: function (res, req) {
         //check which customer is logged in
-        let loggedInCustomerId = req.user.id;
-        let cityId = req.user.cityid;
+        //TEST req.body in loggedInCustomerId and cityId
+        console.log(req.body);
+        // let loggedInCustomerId = req.user.id;
+        // let cityId = req.user.cityid;
+        let loggedInCustomerId = req.body.userid;
+        let cityId =  req.body.cityid;
         let bikeId = req.params.bikeid;
 
-        /* Check if bike is available!? */
+        console.log("customer: " + loggedInCustomerId);
 
-        // let loggedInCustomerId = req.body.userid;
-        // let cityId = req.body.cityid;
+        /* Check if bike is available!? */
 
         let newEvent = {
             customerid: loggedInCustomerId,
@@ -136,12 +139,15 @@ const travel = {
         customer ends bike rental
     */
     returnBike: function (res, req) {
-        let loggedInCustomerId = req.user.id;
+        //TEST loggedInCustomerId
+        // let loggedInCustomerId = req.user.id;
+        let loggedInCustomerId = req.body.userid;
         let bikeId = req.params.bikeid;
 
         //check if bike is in rentList
         let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
 
+        console.log("rentList: ");
         console.log(rentList);
 
         if (bikeIndex < 0) {
@@ -165,6 +171,9 @@ const travel = {
             //add bike to queue of canceled bikes
             cancelQueue.unshift(newEvent);
 
+            console.log("cancelQueue");
+            console.log(cancelQueue);
+
             return res.status(201).json({
                 data: {
                     type: "success",
@@ -185,43 +194,131 @@ const travel = {
         });
     },
 
+    /*
+        route returns all newly returned/canceled bikes
+        and empties that queue.
+    */
+    getCancelQueue: function(res) {
+        //temprary queue
+        let returnQueue = cancelQueue;
+
+        console.log("cancelQueue before empty:");
+        console.log(cancelQueue);
+
+        //empty cancelQueue
+        cancelQueue = [];
+
+        console.log("cancelQueue after empty:");
+        console.log(cancelQueue);
+
+        //return list of bikeids
+        return res.status(200).json(returnQueue);
+    },
 
     /*
         Update bike info
         If canceled = true then remove bike
         from rent-list
     */
-    // updateBike: function (res, req) {
-    //     let bikeId = req.body.bikeid;
-    //     let canceled = req.body.canceled;
-    //
-    //     //check if bike is in rentList
-    //     let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
-    //
-    //     if (bikeIndex < 0) {
-    //         return res.status(404).json({
-    //             errors: {
-    //                 status: 404,
-    //                 path: `/v1/travel${req.path}`,
-    //                 title: "Not found",
-    //                 message: "Bike not found"
-    //             }
-    //         });
-    //     }
-    //
-    //     console.log(bike info:);
-    //     console.log(rentList[bikeIndex]);
-    //
-    //     //remove from rent-list
-    //     rentList.splice(bikeIndex, 1);
-    //
-    //     return res.status(201).json({
-    //         data: {
-    //             type: "success",
-    //             message: "Bike returned"
-    //         }
-    //     });
-    // }
+    updateBike: function (res, req) {
+        //check input
+        var errors=[]
+        if (!req.body.battery_level){
+            errors.push("No batter_level specified");
+        }
+        if (!req.body.gps_lat || ! req.body.gps_lon){
+            errors.push("No gps coordinates specified");
+        }
+        if (!req.body.rent_time){
+            errors.push("No rent_time specified");
+        }
+        if (!req.body.canceled){
+            errors.push("Not specified if ride is canceled or not");
+        }
+        //if any of the above information is missing,
+        //return error message
+        if (errors.length){
+            return res.status(400).json({
+                status: 400,
+                path: `/v1/travel${req.path}`,
+                title: "Missing input information",
+                message: errors.join(",")
+            });
+        }
+
+        let bikeId = req.params.bikeid;
+
+        //TEST
+        rentList = [
+            {
+                customerid: '2',
+                bikeid: '2',
+                cityid: '2',
+                timestamp: 1638784510147
+            },
+            {
+                customerid: '1',
+                bikeid: '1',
+                cityid: '1',
+                timestamp: 1638784499765
+            }
+        ];
+
+        //check if bike is in rentList
+        let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
+
+        if (bikeIndex < 0) {
+            return res.status(404).json({
+                errors: {
+                    status: 404,
+                    path: `/v1/travel${req.path}`,
+                    title: "Not found",
+                    message: "Bike not found"
+                }
+            });
+        }
+
+        let canceled = req.body.canceled;
+
+        let updatedBike = {
+            battery_level: req.body.battery_level,
+            gps_lat: req.body.gps_lat,
+            gps_lon: req.body.gps_lon,
+            rent_time: req.body.rent_time,
+            canceled: canceled
+        };
+
+        //update bike
+        let bike = rentList[bikeIndex];
+        console.log("bike info before update:");
+        console.log(bike);
+
+        bike.battery_level = req.body.battery_level;
+        bike.gps_lat = req.body.gps_lat;
+        bike.gps_lon = req.body.gps_lon;
+        bike.rent_time = req.body.rent_time;
+        bike.canceled = canceled;
+
+        console.log("after update:");
+        console.log(bike);
+
+        if (canceled == 'true') {
+            console.log("update db");
+            return res.status(200).json({
+                data: {
+                    type: "success",
+                    message: "Bike ride canceled"
+                }
+            });
+        }
+
+        return res.status(200).json({
+            data: {
+                type: "success",
+                message: "Bike updated"
+            }
+        });
+    }
 };
 
 module.exports = travel;
