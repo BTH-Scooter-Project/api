@@ -169,9 +169,9 @@ const auth = {
 
         const data = {
             email: req.body.email,
-            firstName: "Test",
-            lastName: "Testsson",
-            city: "Stockholm"
+            firstName: req.body.firstname,
+            lastName: req.body.lastname,
+            cityId: req.body.cityid
         };
 
         var errors=[];
@@ -182,13 +182,19 @@ const auth = {
         if (!password) {
             errors.push("Password not specified");
         }
+        if (!data.firstName || !data.lastName) {
+            errors.push("First or last name not specified");
+        }
+        if (!data.cityId) {
+            errors.push("City id not specified");
+        }
         if (errors.length) {
             return res.status(400).json({
                 errors: {
                     status: 400,
                     source: `/v1/auth${req.path}`,
                     message: "Missing input",
-                    detail: errors.join(",")
+                    detail: errors.join(", ")
                 }
             });
         }
@@ -207,9 +213,9 @@ const auth = {
             }
 
             var sql = `INSERT into CUSTOMER
-                        (firstname, lastname, password, email, city)
+                        (firstname, lastname, password, email, cityid)
                         values (?, ?, ?, ?, ?);`;
-            var params =[data.firstName, data.lastName, hash, data.email, data.city];
+            var params =[data.firstName, data.lastName, hash, data.email, data.cityid];
 
             db.run(sql, params, function (err) {
                 if (err) {

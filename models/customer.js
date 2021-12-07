@@ -55,7 +55,10 @@ const customer = {
             });
         }
 
-        var sql ='SELECT * from customer WHERE userid = ?;';
+        var sql =`SELECT
+                    userid, firstname, lastname, email,
+                    cityid, payment, balance
+                    FROM customer WHERE userid = ?;`;
         var params =[req.params.id];
 
         db.get(sql, params, function (err, row) {
