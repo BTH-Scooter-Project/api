@@ -216,6 +216,7 @@ const travel = {
     },
     /*
         customer ends bike rental
+        bike added to cancelQueue
     */
     returnBike: function (res, req) {
         //TEST loggedInCustomerId = req.body.userid,
@@ -244,12 +245,8 @@ const travel = {
         //check that logged in customer is the same as the one
         //who had rented the bike in question
         if (rentList[bikeIndex].customerid == loggedInCustomerId) {
-            let newEvent = {
-                bikeId
-            };
-
             //add bike to queue of canceled bikes
-            cancelQueue.unshift(newEvent);
+            cancelQueue.unshift(bikeId);
 
             // console.log("cancelQueue");
             // console.log(cancelQueue);
