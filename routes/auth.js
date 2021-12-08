@@ -22,7 +22,7 @@ router.get('/customer',
     (req, res) => customerModel.getAllCustomers(res, req)
 );
 
-//visa alla kunder - endast inloggad personal/staff
+//visa specifik kund - endast för den egna inloggade kunden
 router.get('/customer/:id',
     (req, res, next) => authModel.checkToken(req, res, next),
     (req, res) => customerModel.getSpecificCustomer(res, req)

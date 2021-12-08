@@ -533,6 +533,64 @@ const travel = {
             return 10;
         }
         return 20;
+    },
+    getRentedBikes: function (res, req) {
+        //TEST
+        rentList = [
+            {
+                customerid: 2,
+                bikeid: 3,
+                timestamp: 1638954124713,
+                cityid: 1,
+                battery_capacity: 9000,
+                gps_lat_start: 500.1,
+                gps_lon_start: 500.1,
+                start_station: 1,
+                battery_level: '222',
+                gps_lat: '456.456',
+                gps_lon: '500.5',
+                rent_time: '200',
+                canceled: 'false',
+                destination_reached: 'false'
+            },
+            {
+                customerid: 3,
+                bikeid: 4,
+                timestamp: 1638954124713,
+                cityid: 2,
+                battery_capacity: 9000,
+                gps_lat_start: 100.1,
+                gps_lon_start: 100.1,
+                start_station: 1,
+                battery_level: '222',
+                gps_lat: '456.456',
+                gps_lon: '500.5',
+                rent_time: '200',
+                canceled: 'false',
+                destination_reached: 'false'
+            }
+        ];
+
+        let cityId = req.params.id;
+        let currBikes = [];
+
+        console.log(cityId);
+
+        rentList.map(element => {
+            if (element.cityid == cityId) {
+                console.log(element.cityid);
+                let addBike = {
+                    bikeid: element.bikeid,
+                    gps_lat: element.gps_lat,
+                    gps_lon: element.gps_lon
+                }
+                currBikes.push(addBike);
+            }
+        });
+
+        return res.status(200).json({
+            data: currBikes
+        });
     }
 };
 
