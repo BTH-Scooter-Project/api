@@ -70,40 +70,119 @@ const travel = {
         });
     },
     /*
-        rent a bike, add customer id + bike id to queue
+        rent a bike,
+        first check if bike exists, then
+        if its available = vacant.
+        Then add customer id + bike id to queue.
+        Update bike status from vacant to rented
     */
     rentBike: function (res, req) {
-        //check which customer is logged in
-        //TEST req.body in loggedInCustomerId and cityId
-        console.log(req.body);
-        // let loggedInCustomerId = req.user.id;
-        // let cityId = req.user.cityid;
-        let loggedInCustomerId = req.body.userid;
-        let cityId =  req.body.cityid;
-        let bikeId = req.params.bikeid;
+        /* Check if bike is available */
+        let db;
 
-        console.log("customer: " + loggedInCustomerId);
+        db = database.getDb();
 
-        /* Check if bike is available!? */
+        var sql ='SELECT * from bike WHERE bikeid = ?;';
+        var params =[req.params.bikeid];
 
-        let newEvent = {
-            customerid: loggedInCustomerId,
-            bikeid: bikeId,
-            cityid: cityId,
-            timestamp: Date.now()
-        };
-
-        rentQueue.unshift(newEvent);
-        // console.log("added travel:");
-        // console.log(rentQueue);
-
-        console.log(rentQueue);
-
-        return res.status(201).json({
-            data: {
-                type: "success",
-                message: "Bike rented"
+        db.get(sql, params, function (err, row) {
+            if (err) {
+                return res.status(400).json({
+                    errors: {
+                        status: 400,
+                        path: `/v1/travel${req.path}`,
+                        title: "Bad request",
+                        message: err.message
+                    }
+                });
             }
+            //check if row exists ie bikeId exists
+            return row
+                ? travel.createTravel(res, req, row, db)
+                : res.status(404).json({
+                    errors: {
+                        status: 404,
+                        path: `/v1/travel${req.path}`,
+                        title: "Not found",
+                        message: "The bike is not found"
+                    }
+                });
+        });
+    },
+
+    /*
+        create travel if bikeId exists
+        and if bike is available
+    */
+    createTravel: function(res, req, bike, db) {
+        //check which customer is logged in
+
+        //TEST then get id from body, need to remove auth.checkToken in route
+        // let loggedInCustomerId = (req.body.test) ? req.body.userid : req.user.id;
+
+        let loggedInCustomerId = req.user.id;
+
+        //check if bike is available = vacant
+        if (bike.status != 'vacant') {
+            return res.status(400).json({
+                errors: {
+                    status: 400,
+                    path: `/v1/travel${req.path}`,
+                    title: "Bad request",
+                    message: `The bike is currently not available, bike status: ${bike.status}`
+                }
+            });
+        }
+
+        let bikeId = bike.bikeid;
+
+        //change status of bike to "rented" och lägg till i kön
+        //över uthyrda cyklar
+        var sql = `UPDATE bike set status='rented' where bikeid = ?;`;
+        var params =[bikeId];
+
+        db.run(sql, params, function (err) {
+            if (err) {
+                return res.status(500).json({
+                    errors: {
+                        status: 500,
+                        source: `/v1/travel${req.path}`,
+                        message: `Error updating bike with id ${bikeId}`,
+                        detail: err.message
+                    }
+                });
+            }
+
+            // hämta dessa värden nu från bike eller efter resan
+            // testar att hämta före resan, blir
+            // mer data att spara i API:t men
+            // en mindre select mot db efter resan
+
+            let newEvent = {
+                customerid: loggedInCustomerId,
+                bikeid: bikeId,
+                timestamp: Date.now(),
+                cityid: bike.cityid,
+                battery_capacity: bike.battery_capacity,
+                gps_lat_start: bike.gps_lat,
+                gps_lon_start: bike.gps_lon,
+                start_station: bike.stationid,
+            };
+
+
+            //add travel to rentQueue
+            rentQueue.unshift(newEvent);
+
+            // console.log("added travel:");
+            // console.log(rentQueue);
+
+            return res.status(201).json({
+                data: {
+                    type: "success",
+                    message: `Bike rented`,
+                    bikeid: bikeId
+                }
+            });
         });
     },
 
@@ -120,7 +199,7 @@ const travel = {
         //temporary array for bikeids
         let bikeids = [];
 
-        //add bikeids to temporary array,
+        //add bikeids to temporary array to return,
         //add rentQueue objects to rentList
         rentQueue.map(element => {
             bikeids.push(element.bikeid);
@@ -130,7 +209,7 @@ const travel = {
         //empty rentQueue
         rentQueue = [];
 
-        console.log(rentList);
+        // console.log(rentList);
 
         //return list of bikeids
         return res.status(200).json(bikeids);
@@ -139,16 +218,17 @@ const travel = {
         customer ends bike rental
     */
     returnBike: function (res, req) {
-        //TEST loggedInCustomerId
-        // let loggedInCustomerId = req.user.id;
-        let loggedInCustomerId = req.body.userid;
+        //TEST loggedInCustomerId = req.body.userid,
+        //need to remove checkToken in route
+        let loggedInCustomerId = req.user.id;
         let bikeId = req.params.bikeid;
 
         //check if bike is in rentList
         let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
 
-        console.log("rentList: ");
-        console.log(rentList);
+        // console.log("rentList: ");
+        // console.log(rentList);
+        // console.log("logged in customer: " + loggedInCustomerId);
 
         if (bikeIndex < 0) {
             return res.status(404).json({
@@ -171,18 +251,17 @@ const travel = {
             //add bike to queue of canceled bikes
             cancelQueue.unshift(newEvent);
 
-            console.log("cancelQueue");
-            console.log(cancelQueue);
+            // console.log("cancelQueue");
+            // console.log(cancelQueue);
 
             return res.status(201).json({
                 data: {
                     type: "success",
-                    message: "Bike returned"
+                    message: "Bike returned",
+                    bikeid: bikeId
                 }
             });
         }
-
-        console.log(cancelQueue);
 
         return res.status(404).json({
             errors: {
@@ -202,14 +281,14 @@ const travel = {
         //temprary queue
         let returnQueue = cancelQueue;
 
-        console.log("cancelQueue before empty:");
-        console.log(cancelQueue);
+        // console.log("cancelQueue before empty:");
+        // console.log(cancelQueue);
 
         //empty cancelQueue
         cancelQueue = [];
 
-        console.log("cancelQueue after empty:");
-        console.log(cancelQueue);
+        // console.log("cancelQueue after empty:");
+        // console.log(cancelQueue);
 
         //return list of bikeids
         return res.status(200).json(returnQueue);
@@ -222,22 +301,26 @@ const travel = {
     */
     updateBike: function (res, req) {
         //check input
-        var errors=[]
-        if (!req.body.battery_level){
+        var errors=[];
+
+        if (!req.body.battery_level) {
             errors.push("No batter_level specified");
         }
-        if (!req.body.gps_lat || ! req.body.gps_lon){
+        if (!req.body.gps_lat || ! req.body.gps_lon) {
             errors.push("No gps coordinates specified");
         }
-        if (!req.body.rent_time){
+        if (!req.body.rent_time) {
             errors.push("No rent_time specified");
         }
-        if (!req.body.canceled){
+        if (!req.body.canceled) {
             errors.push("Not specified if ride is canceled or not");
+        }
+        if (!req.body.destination_reached) {
+            errors.push("Not specified if destionation is reached");
         }
         //if any of the above information is missing,
         //return error message
-        if (errors.length){
+        if (errors.length) {
             return res.status(400).json({
                 status: 400,
                 path: `/v1/travel${req.path}`,
@@ -249,20 +332,29 @@ const travel = {
         let bikeId = req.params.bikeid;
 
         //TEST
-        rentList = [
-            {
-                customerid: '2',
-                bikeid: '2',
-                cityid: '2',
-                timestamp: 1638784510147
-            },
-            {
-                customerid: '1',
-                bikeid: '1',
-                cityid: '1',
-                timestamp: 1638784499765
-            }
-        ];
+        // rentList = [
+        //     {
+        //         customerid: '2',
+        //         bikeid: '2',
+        //         cityid: '2',
+        //         timestamp: 1638784510147,
+        //         battery_capacity: 4000,
+        //         gps_lat_start: 500.2,
+        //         gps_lon_start: 200.23,
+        //         start_station: 2,
+        //
+        //     },
+        //     {
+        //         customerid: '1',
+        //         bikeid: '1',
+        //         cityid: '1',
+        //         timestamp: 1638784499765,
+        //         battery_capacity: 8000,
+        //         gps_lat_start: 200.2,
+        //         gps_lon_start: 100.23,
+        //         start_station: -1,
+        //     }
+        // ];
 
         //check if bike is in rentList
         let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
@@ -280,44 +372,170 @@ const travel = {
 
         let canceled = req.body.canceled;
 
-        let updatedBike = {
-            battery_level: req.body.battery_level,
-            gps_lat: req.body.gps_lat,
-            gps_lon: req.body.gps_lon,
-            rent_time: req.body.rent_time,
-            canceled: canceled
-        };
-
         //update bike
         let bike = rentList[bikeIndex];
-        console.log("bike info before update:");
-        console.log(bike);
 
         bike.battery_level = req.body.battery_level;
         bike.gps_lat = req.body.gps_lat;
         bike.gps_lon = req.body.gps_lon;
         bike.rent_time = req.body.rent_time;
         bike.canceled = canceled;
+        bike.destination_reached = req.body.destination_reached;
 
-        console.log("after update:");
-        console.log(bike);
-
+        //ending bike ride if cancel is true
         if (canceled == 'true') {
-            console.log("update db");
-            return res.status(200).json({
-                data: {
-                    type: "success",
-                    message: "Bike ride canceled"
-                }
-            });
+            return travel.cancelBike(res, req, bike, bikeIndex);
         }
 
+        //otherwise send back that bike is updated
+        //ie data only saved locally in API rentList
         return res.status(200).json({
             data: {
                 type: "success",
-                message: "Bike updated"
+                message: "Bike updated",
+                bikeid: bike.bikeid
             }
         });
+    },
+    /*
+        Cancel bike ride.
+        First check if bike has reached destination,
+        if so check if it is returned
+        at a station. Do this with a callback
+        as station info is needed to update bike.
+        Update bike and add travel_history in DB,
+        then remove bike from rentList
+    */
+    cancelBike: function(res, req, bike, bikeIndex) {
+        let db;
+
+        db = database.getDb();
+
+        //if bike has not reached destination, assume
+        //that it has not been left at a station, thus
+        //no need to check against DB for station
+        if (bike.destination_reached != 'true') {
+            bike.end_station = -1;
+            return travel.updateTravel(res, req, bike, bikeIndex, db);
+        }
+
+        var sqlStation = `SELECT * from STATION
+                        WHERE gps_lat = ? and gps_lon = ?;`;
+        var paramsStation = [bike.gps_lat, bike.gps_lon];
+
+        //check if bike is returned at a station
+        let getStation = function(callback) {
+            db.get(sqlStation, paramsStation, function(err, row) {
+                callback(err, row);
+            });
+        };
+
+        //get station information (callback to be able to use it further down)
+        //and use it to update bike
+        getStation(function(err, station) {
+            if (err) {
+                return res.status(400).json({
+                    errors: {
+                        status: 400,
+                        source: `/v1/travel${req.path}`,
+                        message: "Error retrieving station information",
+                        detail: err.message
+                    }
+                });
+            }
+            //if bike is at a station, retrieve stationid. Otherwise set it to -1
+            station ? bike.end_station = station.stationid : bike.end_station = -1;
+            //if bike is at a station, retrieve what type of station it is
+            //used for calculating price of travel
+            if (station) {
+                //if bike is returned at a charging station assume
+                //battery charge to 100% instantly
+                if (station.type == 'charge') {
+                    bike.battery_level = bike.battery_capacity;
+                }
+                bike.end_station_type = station.type;
+            }
+
+            return travel.updateTravel(res, req, bike, bikeIndex, db);
+        });
+    },
+    /*
+        update bike-table
+        add new row to travel_history
+    */
+    updateTravel: function(res, req, bike, bikeIndex, db) {
+        //calculate price of travel
+        bike.price = travel.calcTravelPrice(bike);
+
+        // console.log("price for travel:");
+        // console.log(bike.price);
+
+        //update bike status to 'vacant' and set new pos, battery etc
+        //insert new travel into travel_history
+        var sqlBike = `UPDATE BIKE
+                        set status = 'vacant',
+                        battery_level = ?,
+                        gps_lat = ?,
+                        gps_lon = ?,
+                        stationid = ?
+                        where bikeid = ?;`;
+        var sqlTravel = `INSERT INTO travel_history
+                        (date_start, bikeid, userid,
+                        travel_time, price,
+                        gps_lat_start, gps_lon_start,
+                        gps_lat_end, gps_lon_end)
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+
+        var paramsBike = [
+            bike.battery_level,
+            bike.gps_lat,
+            bike.gps_lon,
+            bike.end_station,
+            bike.bikeid
+        ];
+        var paramsTravel = [
+            bike.timestamp, bike.bikeid, bike.customerid,
+            bike.rent_time, bike.price,
+            bike.gps_lat_start, bike.gps_lon_start,
+            bike.gps_lat, bike.gps_lon
+        ];
+
+        //update bike and travel_history tables
+        db.parallelize(() => {
+            db.run(sqlBike, paramsBike)
+                .run(sqlTravel, paramsTravel, (err) => {
+                    if (err) {
+                        return res.status(400).json({
+                            errors: {
+                                status: 400,
+                                source: `/v1/travel${req.path}`,
+                                message: "Error adding travel",
+                                detail: err.message
+                            }
+                        });
+                    }
+                    //if bike is updated and travel_history has been added,
+                    //remove bike from rentList
+                    rentList.splice(bikeIndex, 1);
+
+                    // console.log("removing from rentList");
+                    // console.log(rentList);
+
+                    return res.status(200).json({
+                        data: {
+                            type: "success",
+                            message: "Bike ride canceled",
+                            bikeid: bike.bikeid
+                        }
+                    });
+                });
+        });
+    },
+    calcTravelPrice: function(bike) {
+        if (bike.end_station_type) {
+            return 10;
+        }
+        return 20;
     }
 };
 

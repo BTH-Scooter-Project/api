@@ -118,7 +118,7 @@ const auth = {
             if (result) {
                 //if staff, compare with other jwtToken.
                 if (staff) {
-                    let payload = { email: user.email, id: user.staffid, cityid: null };
+                    let payload = { email: user.email, id: user.staffid };
                     let jwtToken = jwt.sign(payload, jwtSecretStaff, { expiresIn: '1h' });
 
                     //if password is correct, return jwt token
@@ -132,7 +132,7 @@ const auth = {
                     });
                 }
                 //else try login customer
-                let payload = { email: user.email, id: user.userid, cityid: user.cityid };
+                let payload = { email: user.email, id: user.userid };
                 let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
 
                 //if password is correct, return jwt token
@@ -354,7 +354,6 @@ const auth = {
                 // req.user.api_key = apiKey;
                 req.user.email = decoded.email;
                 req.user.id = decoded.id;
-                req.user.cityid = decoded.cityid;
 
                 return next();
             });

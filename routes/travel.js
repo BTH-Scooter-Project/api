@@ -12,19 +12,18 @@ router.get('/customer/:id',
 
 //logged in customer can rent a bike
 router.post('/bike/:bikeid',
-    // (req, res, next) => authModel.checkToken(req, res, next),
+    (req, res, next) => authModel.checkToken(req, res, next),
     (req, res) => travelModel.rentBike(res, req)
 );
 
 //logged in customer can return bike / end renting period of bike
 router.delete('/bike/:bikeid',
-    // (req, res, next) => authModel.checkToken(req, res, next),
+    (req, res, next) => authModel.checkToken(req, res, next),
     (req, res) => travelModel.returnBike(res, req)
 );
 
 //esc can update a rented bike
 router.put('/bike/:bikeid',
-    // (req, res, next) => authModel.checkToken(req, res, next),
     (req, res) => travelModel.updateBike(res, req)
 );
 

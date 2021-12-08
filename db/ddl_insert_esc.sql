@@ -23,6 +23,7 @@ CREATE TABLE "city" (
 	"gps_right_lon"	REAL,
 	PRIMARY KEY("cityid" AUTOINCREMENT)
 );
+INSERT INTO city (cityid, name, gps_left_lat, gps_left_lon, gps_right_lat, gps_right_lon) VALUES (-1, 'okänd', NULL, NULL, NULL, NULL);
 INSERT INTO city (name, gps_left_lat, gps_left_lon, gps_right_lat, gps_right_lon) VALUES ('Sundsvall', 123.42, 345.678, NULL, NULL);
 INSERT INTO city (name, gps_left_lat, gps_left_lon, gps_right_lat, gps_right_lon) VALUES ('Stockholm', 101.123, 120.123, NULL, NULL);
 INSERT INTO city (name, gps_left_lat, gps_left_lon, gps_right_lat, gps_right_lon) VALUES ('Karlskrona', 99.889, 100.123, NULL, NULL);
@@ -38,9 +39,10 @@ CREATE TABLE "station" (
 	FOREIGN KEY("cityid") REFERENCES "city"("cityid"),
 	PRIMARY KEY("stationid" AUTOINCREMENT)
 );
+INSERT INTO station (stationid, type, address, cityid, gps_lat, gps_lon) VALUES (-1, 'ingen station', 'ingen station', -1, NULL, NULL);
 INSERT INTO station (type, address, cityid, gps_lat, gps_lon) VALUES ('parking', 'Fakegatan', 2, 456.456, 500.5);
 INSERT INTO station (type, address, cityid, gps_lat, gps_lon) VALUES ('charge', 'Gatuhörn', 3, 500.5, 600.6);
-
+INSERT INTO station (type, address, cityid, gps_lat, gps_lon) VALUES ('charge', 'Centrum', 3, 100.1, 100.1);
 
 -- Table: bike
 CREATE TABLE "bike" (
@@ -49,23 +51,23 @@ CREATE TABLE "bike" (
 	"image"	TEXT,
 	"description"	TEXT,
 	"max_speed"	TEXT,
-	"battery_capacity"	TEXT,
+	"battery_capacity"	NUMERIC default 5000,
 	"status"	TEXT DEFAULT 'vacant',
 	"battery_level"	NUMERIC DEFAULT 5000,
 	"gps_lat"	REAL,
 	"gps_lon"	REAL,
 	"stationid"	INTEGER DEFAULT -1,
-	"cityid"	TEXT,
+	"cityid"	INTEGER,
 	PRIMARY KEY("bikeid" AUTOINCREMENT),
 	FOREIGN KEY("cityid") REFERENCES "city"("cityid"),
 	FOREIGN KEY("stationid") REFERENCES "station"("stationid")
 );
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel1', 'redBike.jpg', 'En klassisk röd cykel', '12', '10000', 'vacant', 5000, NULL, NULL, 1, 3);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel2', 'greenBike.jpg', 'En grön cykel med fart', '50', '12000', 'vacant', 900, NULL, NULL, 2, 2);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel3', 'puprleBike.jpg', 'En liten lila cykel', '10', '9000', 'vacant', 4200, NULL, NULL, 1, 1);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel4', 'blueBike.jpg', 'En blå cykel utmärkt för terräng', '15', '8000', 'vacant', 7500, NULL, NULL, 2, 3);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel5', 'yellowBike.jpg', 'En gul cykel helt enkelt', '13', '9000', 'vacant', 7500, NULL, NULL, 1, 2);
-INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel6', 'pinkBike.jpg', 'En rosa cykel', '11', '9500', 'vacant', 2000, NULL, NULL, 2, 1);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel1', 'redBike.jpg', 'En klassisk röd cykel', '12', '10000', 'vacant', 5000, 200.123, 300.123, 1, 3);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel2', 'greenBike.jpg', 'En grön cykel med fart', '50', '12000', 'vacant', 900, 200.123, 300.123, 2, 2);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel3', 'puprleBike.jpg', 'En liten lila cykel', '10', '9000', 'vacant', 4200, 500.1, 500.1, 1, 1);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel4', 'blueBike.jpg', 'En blå cykel utmärkt för terräng', '15', '8000', 'vacant', 7500, 400.1, 400.1, 2, 3);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel5', 'yellowBike.jpg', 'En gul cykel helt enkelt', '13', '9000', 'vacant', 7500, 100.1, 100.1, 1, 2);
+INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel6', 'pinkBike.jpg', 'En rosa cykel', '11', '9500', 'vacant', 2000, 100.1, 100.1, 2, 1);
 
 
 -- Table: customer
@@ -75,7 +77,7 @@ CREATE TABLE "customer" (
 	"lastname"	TEXT,
 	"password"	TEXT,
 	"email"		TEXT,
-	"cityid"	TEXT,
+	"cityid"	INTEGER,
 	"payment"	TEXT,
 	"balance"	NUMERIC,
 	FOREIGN KEY("cityid") REFERENCES "city"("cityid"),
@@ -118,20 +120,21 @@ INSERT INTO staff (firstname, lastname, password, role, email) VALUES ("test","t
 -- Table: travel_history
 CREATE TABLE "travel_history" (
 	"travelid"	INTEGER,
-	"date"	BLOB,
+	"date_start"	DATETIME default current_timestamp,
 	"bikeid"	INTEGER,
 	"userid"	INTEGER,
-	"distance"	REAL,
-	"price"	NUMERIC,
-	"start_pos_lat"	REAL,
-	"start_pos_lon"	REAL,
-	"stop_pos_lat"	REAL,
-	"stop_pos_lon"	REAL,
+	"travel_time"	REAL,
+	"price"	REAL,
+	"gps_lat_start"	REAL,
+	"gps_lon_start"	REAL,
+	"gps_lat_end"	REAL,
+	"gps_lon_end"	REAL,
 	FOREIGN KEY("userid") REFERENCES "customer"("userid"),
 	FOREIGN KEY("bikeid") REFERENCES "bike"("bikeid"),
 	PRIMARY KEY("travelid" AUTOINCREMENT)
 );
-INSERT INTO travel_history (date, bikeid, userid, distance, price, start_pos_lat, start_pos_lon, stop_pos_lat, stop_pos_lon) VALUES ('2021-12-01 12:00:00', 1, 6, 1000.0, 20, '789.789', '999.999', '789.789', '999.999');
-INSERT INTO travel_history (date, bikeid, userid, distance, price, start_pos_lat, start_pos_lon, stop_pos_lat, stop_pos_lon) VALUES ('2021-12-01 10:30:20', 4, 4, 2500.0, 38, '123.123', '456.456', '123.123', '456.456');
+INSERT INTO travel_history (date_start, bikeid, userid, travel_time, price, gps_lat_start, gps_lon_start, gps_lat_end, gps_lon_end) VALUES ('2021-12-01 12:00:00', 1, 6, 1000.0, 20, '789.789', '999.999', '789.789', '999.999');
+INSERT INTO travel_history (date_start, bikeid, userid, travel_time, price, gps_lat_start, gps_lon_start, gps_lat_end, gps_lon_end) VALUES ('2021-12-01 10:30:20', 4, 4, 2500.0, 38, '123.123', '456.456', '123.123', '456.456');
+INSERT INTO travel_history (bikeid, userid, travel_time, price, gps_lat_start, gps_lon_start, gps_lat_end, gps_lon_end) VALUES (2, 1, 220.0, 27.2, '123.123', '456.456', '123.123', '456.456');
 
 COMMIT;
