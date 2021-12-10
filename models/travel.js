@@ -161,7 +161,7 @@ const travel = {
             let newEvent = {
                 customerid: loggedInCustomerId,
                 bikeid: bikeId,
-                timestamp: Date.now(),
+                timestamp: new Date(),
                 cityid: bike.cityid,
                 battery_capacity: bike.battery_capacity,
                 gps_lat_start: bike.gps_lat,
@@ -334,10 +334,10 @@ const travel = {
         //         customerid: '2',
         //         bikeid: '2',
         //         cityid: '2',
-        //         timestamp: 1638784510147,
+        //         timestamp: new Date(),
         //         battery_capacity: 4000,
-        //         gps_lat_start: 500.2,
-        //         gps_lon_start: 200.23,
+        //         gps_lat_start: 500.5,
+        //         gps_lon_start: 600.6,
         //         start_station: 2,
         //
         //     },
@@ -345,7 +345,7 @@ const travel = {
         //         customerid: '1',
         //         bikeid: '1',
         //         cityid: '1',
-        //         timestamp: 1638784499765,
+        //         timestamp: new Date(),
         //         battery_capacity: 8000,
         //         gps_lat_start: 200.2,
         //         gps_lon_start: 100.23,
@@ -440,17 +440,18 @@ const travel = {
                     }
                 });
             }
+
             //if bike is at a station, retrieve stationid. Otherwise set it to -1
-            station ? bike.end_station = station.stationid : bike.end_station = -1;
+            bike.end_station = -1;
             //if bike is at a station, retrieve what type of station it is
             //used for calculating price of travel
             if (station) {
+                bike.end_station = station.stationid;
                 //if bike is returned at a charging station assume
                 //battery charge to 100% instantly
                 if (station.type == 'charge') {
                     bike.battery_level = bike.battery_capacity;
                 }
-                bike.end_station_type = station.type;
             }
 
             return travel.updateTravel(res, req, bike, bikeIndex, db);
@@ -461,7 +462,7 @@ const travel = {
         add new row to travel_history
     */
     updateTravel: function(res, req, bike, bikeIndex, db) {
-        //calculate price of travel
+        //calculate price of travel TODO
         bike.price = travel.calcTravelPrice(bike);
 
         // console.log("price for travel:");
@@ -483,6 +484,9 @@ const travel = {
                         gps_lat_end, gps_lon_end)
                         values (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
 
+        //get date-time in yyyy-mm-dd hh:mm:ss
+        bike.startDate = bike.timestamp.toISOString().slice(0,19).replace(/T/g,' ');
+
         var paramsBike = [
             bike.battery_level,
             bike.gps_lat,
@@ -490,8 +494,9 @@ const travel = {
             bike.end_station,
             bike.bikeid
         ];
+
         var paramsTravel = [
-            bike.timestamp, bike.bikeid, bike.customerid,
+            bike.startDate, bike.bikeid, bike.customerid,
             bike.rent_time, bike.price,
             bike.gps_lat_start, bike.gps_lon_start,
             bike.gps_lat, bike.gps_lon
@@ -528,48 +533,88 @@ const travel = {
                 });
         });
     },
+    /*
+        calculate the price of the bike travel
+    */
     calcTravelPrice: function(bike) {
-        if (bike.end_station_type) {
-            return 10;
+        /* Från kravet:
+          "Varje resa som en kund gör kostar pengar, dels en fast taxa och en rörlig taxa per tidsenhet och en taxa beroende av var de parkerar."
+          "Om en kund tar en cykel som står på fri parkering - och lämnar på en definierad parkering - så blir startavgiften lite lägre"
+          "Cyklar kan även parkeras utanför laddstationer och utanför accepterade platser,
+           men det kan då tillkomma en extra avgift för kunden. Detta kallas fri parkering."
+           Finns 3 scenario:
+           1 kunden hämtar på free parking och lämnar på station - lägre startavgift
+           2 kunden hämtar valfritt men lämnar på free parking - extra avgift för free parkering
+           3 kunden hämtar på station och lämnar på station - inga +/- avgift
+           Calculation of travel cost
+           cost = start_fee + price_per_second * rent_time + price_free_parking(park outside station) - start_fee_decrease(if parking at station but getting bike outside of station)
+        */
+
+        /*
+         https://www.expressen.se/dinapengar/konsument/hyra-elscooter-har-ar-reglerna-och-vad-det-kostar/
+         Valde: 10 kronor att låsa upp samt 3 kronor per minut.
+        */
+
+        let price = 0;
+        let start_fee = 10;
+        let price_per_second = 0.05;
+        let price_free_parking = 10;
+        let start_fee_decrease = 5;
+
+        price += start_fee + price_per_second * bike.rent_time;
+
+        //if parking at a station
+        if (bike.end_station > 0) {
+            //if customer has retrieved a bike outside of a station
+            if (bike.start_station < 0) {
+                console.log("retrieving bike outside of station");
+                price -= start_fee_decrease;
+            }
+            // if customer gets and retrieves at station
+            // no extra is added/subtracted from price
+            return price;
         }
-        return 20;
+
+        //if end station is not a station ("free parking"), add extra fee
+        price += price_free_parking;
+        return price;
     },
     getRentedBikes: function (res, req) {
         //TEST
-        rentList = [
-            {
-                customerid: 2,
-                bikeid: 3,
-                timestamp: 1638954124713,
-                cityid: 1,
-                battery_capacity: 9000,
-                gps_lat_start: 500.1,
-                gps_lon_start: 500.1,
-                start_station: 1,
-                battery_level: '222',
-                gps_lat: '456.456',
-                gps_lon: '500.5',
-                rent_time: '200',
-                canceled: 'false',
-                destination_reached: 'false'
-            },
-            {
-                customerid: 3,
-                bikeid: 4,
-                timestamp: 1638954124713,
-                cityid: 2,
-                battery_capacity: 9000,
-                gps_lat_start: 100.1,
-                gps_lon_start: 100.1,
-                start_station: 1,
-                battery_level: '222',
-                gps_lat: '456.456',
-                gps_lon: '500.5',
-                rent_time: '200',
-                canceled: 'false',
-                destination_reached: 'false'
-            }
-        ];
+        // rentList = [
+        //     {
+        //         customerid: 2,
+        //         bikeid: 3,
+        //         timestamp: 1638954124713,
+        //         cityid: 1,
+        //         battery_capacity: 9000,
+        //         gps_lat_start: 500.1,
+        //         gps_lon_start: 500.1,
+        //         start_station: 1,
+        //         battery_level: '222',
+        //         gps_lat: '456.456',
+        //         gps_lon: '500.5',
+        //         rent_time: '200',
+        //         canceled: 'false',
+        //         destination_reached: 'false'
+        //     },
+        //     {
+        //         customerid: 3,
+        //         bikeid: 4,
+        //         timestamp: 1638954124713,
+        //         cityid: 2,
+        //         battery_capacity: 9000,
+        //         gps_lat_start: 100.1,
+        //         gps_lon_start: 100.1,
+        //         start_station: 1,
+        //         battery_level: '222',
+        //         gps_lat: '456.456',
+        //         gps_lon: '500.5',
+        //         rent_time: '200',
+        //         canceled: 'false',
+        //         destination_reached: 'false'
+        //     }
+        // ];
 
         let cityId = req.params.id;
         let currBikes = [];
