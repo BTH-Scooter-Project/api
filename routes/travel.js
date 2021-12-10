@@ -27,12 +27,12 @@ router.put('/bike/:bikeid',
     (req, res) => travelModel.updateBike(res, req)
 );
 
-//get all bikeids from rentQueue, empty queue
+//esc can get all bikeids from rentQueue, empty queue
 router.get('/rented',
     (req, res) => travelModel.getRentQueue(res)
 );
 
-//get all bikeids from cancelQueue, empty queue
+//esc can get all bikeids from cancelQueue, empty queue
 router.get('/canceled',
     (req, res) => travelModel.getCancelQueue(res)
 );
