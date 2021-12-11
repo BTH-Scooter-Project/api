@@ -1,0 +1,12 @@
+{
+    "python.pythonPath": "/home/nesko/anaconda3/envs/esc/bin/python",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:api}/db/esc.db",
+            "name": "esc"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

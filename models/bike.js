@@ -31,40 +31,45 @@ const bike = {
             });
         });
     },
+
     //get Bike with specific id
-    getSpecificBike: function (res, req) {
+    getSpecificBike: async function (res, req) {
         let db;
 
-        db = database.getDb();
 
-        var sql ='SELECT * from bike WHERE bikeid = ?;';
-        var params =[req.params.id];
+        try {
+            db = database.getDb();
+    
+            var sql ='SELECT * from bike WHERE bikeid = ?;';
+            var params =[req.params.id];
 
-        db.get(sql, params, function (err, row) {
-            if (err) {
-                return res.status(400).json({
-                    errors: {
-                        status: 400,
-                        path: `/bike${req.path}`,
-                        title: "Bad request",
-                        message: err.message
-                    }
-                });
-            }
-            //check if row exists ie id exists
-            return row
-                ? res.status(200).json({
-                    "data": row
-                })
-                : res.status(404).json({
-                    errors: {
-                        status: 404,
-                        path: `/bike${req.path}`,
-                        title: "Not found",
-                        message: "The bike is not found"
-                    }
-                });
-        });
+            db.get(sql, params, function (err, row) {
+                if (err) {
+                    return res.status(400).json({
+                        errors: {
+                            status: 400,
+                            path: `/bike${req.path}`,
+                            title: "Bad request",
+                            message: err.message
+                        }
+                    });
+                }
+                //check if row exists ie id exists
+                return row
+                    ? res.status(200).json({
+                        "data": row
+                    })
+                    : res.status(404).json({
+                        errors: {
+                            status: 404,
+                            path: `/bike${req.path}`,
+                            title: "Not found",
+                            message: "The bike is not found"
+                        }
+                    });
+            });
+        }
+        
     }
 };
 
