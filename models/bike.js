@@ -4,6 +4,14 @@
 */
 const database = require("../db/database.js");
 
+let config;
+
+try {
+    config = require('../config/config.json');
+} catch (error) {
+    console.error(error);
+}
+
 const bike = {
     /*
         get all bikes
@@ -33,44 +41,40 @@ const bike = {
     },
 
     //get Bike with specific id
-    getSpecificBike: async function (res, req) {
+    getSpecificBike: function (res, req) {
         let db;
 
-
-        try {
-            db = database.getDb();
+        db = database.getDb();
     
-            var sql ='SELECT * from bike WHERE bikeid = ?;';
-            var params =[req.params.id];
+        var sql ='SELECT *, ? AS interval from bike, city WHERE bikeid = ? AND bike.cityid = city.cityid;';
+        var params =[config.interval, req.params.id];
 
-            db.get(sql, params, function (err, row) {
-                if (err) {
-                    return res.status(400).json({
-                        errors: {
-                            status: 400,
-                            path: `/bike${req.path}`,
-                            title: "Bad request",
-                            message: err.message
-                        }
-                    });
-                }
-                //check if row exists ie id exists
-                return row
-                    ? res.status(200).json({
-                        "data": row
-                    })
-                    : res.status(404).json({
-                        errors: {
-                            status: 404,
-                            path: `/bike${req.path}`,
-                            title: "Not found",
-                            message: "The bike is not found"
-                        }
-                    });
-            });
-        }
-        
-    }
+        db.get(sql, params, function (err, row) {
+            if (err) {
+                return res.status(400).json({
+                    errors: {
+                        status: 400,
+                        path: `/bike${req.path}`,
+                        title: "Bad request",
+                        message: err.message
+                    }
+                });
+            }
+            //check if row exists ie id exists
+            return row
+                ? res.status(200).json({
+                    "data": row
+                })
+                : res.status(404).json({
+                    errors: {
+                        status: 404,
+                        path: `/bike${req.path}`,
+                        title: "Not found",
+                        message: "The bike is not found"
+                    }
+                });
+        });
+    },
 };
 
 module.exports = bike;
