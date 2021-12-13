@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
+const cors = require('cors');
 const app = express();
 const port = 1337;
 const path = require('path');
@@ -44,6 +45,13 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "public")));
 //all routes require api
 app.all('*', authModel.checkAPIKey);
+
+//Lösning för CORS policy: Access-Control-Allow-Origin för React 
+app.use(cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST"],
+    credentials: true,
+    }));
 
 /**
  * Add routes
