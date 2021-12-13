@@ -133,7 +133,7 @@ const auth = {
                 }
                 //else try login customer
                 let payload = { email: user.email, id: user.userid };
-                let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
+                let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '24h' });
 
                 //if password is correct, return jwt token
                 return res.json({
