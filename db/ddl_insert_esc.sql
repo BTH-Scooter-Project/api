@@ -51,16 +51,18 @@ CREATE TABLE "bike" (
 	"image"	TEXT,
 	"description"	TEXT,
 	"max_speed"	TEXT,
-	"battery_capacity"	NUMERIC default 5000,
+	"battery_capacity"	NUMERIC DEFAULT 5000,
 	"status"	TEXT DEFAULT 'vacant',
 	"battery_level"	NUMERIC DEFAULT 5000,
 	"gps_lat"	REAL,
 	"gps_lon"	REAL,
+	"dest_lat"	REAL,
+	"dest_lon"	REAL,
 	"stationid"	INTEGER DEFAULT -1,
 	"cityid"	INTEGER,
-	PRIMARY KEY("bikeid" AUTOINCREMENT),
 	FOREIGN KEY("cityid") REFERENCES "city"("cityid"),
-	FOREIGN KEY("stationid") REFERENCES "station"("stationid")
+	FOREIGN KEY("stationid") REFERENCES "station"("stationid"),
+	PRIMARY KEY("bikeid" AUTOINCREMENT)
 );
 INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel1', 'redBike.jpg', 'En klassisk röd cykel', '12', '10000', 'vacant', 5000, 200.123, 300.123, 1, 3);
 INSERT INTO bike (name, image, description, max_speed, battery_capacity, status, battery_level, gps_lat, gps_lon, stationid, cityid) VALUES ('cykel2', 'greenBike.jpg', 'En grön cykel med fart', '50', '12000', 'vacant', 900, 200.123, 300.123, 2, 2);
@@ -76,7 +78,7 @@ CREATE TABLE "customer" (
 	"firstname"	TEXT,
 	"lastname"	TEXT,
 	"password"	TEXT,
-	"email"		TEXT,
+	"email"		TEXT UNIQUE,
 	"cityid"	INTEGER,
 	"payment"	TEXT,
 	"balance"	NUMERIC,
@@ -120,17 +122,18 @@ INSERT INTO staff (firstname, lastname, password, role, email) VALUES ("test","t
 -- Table: travel_history
 CREATE TABLE "travel_history" (
 	"travelid"	INTEGER,
-	"date_start"	DATETIME default current_timestamp,
+	"date_start"	DATETIME DEFAULT current_timestamp,
+	"date_end"	DATETIME,
+	"travel_time"	REAL,
 	"bikeid"	INTEGER,
 	"userid"	INTEGER,
-	"travel_time"	REAL,
 	"price"	REAL,
 	"gps_lat_start"	REAL,
 	"gps_lon_start"	REAL,
 	"gps_lat_end"	REAL,
 	"gps_lon_end"	REAL,
-	FOREIGN KEY("userid") REFERENCES "customer"("userid"),
 	FOREIGN KEY("bikeid") REFERENCES "bike"("bikeid"),
+	FOREIGN KEY("userid") REFERENCES "customer"("userid"),
 	PRIMARY KEY("travelid" AUTOINCREMENT)
 );
 INSERT INTO travel_history (date_start, bikeid, userid, travel_time, price, gps_lat_start, gps_lon_start, gps_lat_end, gps_lon_end) VALUES ('2021-12-01 12:00:00', 1, 6, 1000.0, 20, '789.789', '999.999', '789.789', '999.999');
