@@ -48,7 +48,7 @@ app.all('*', authModel.checkAPIKey);
 
 //Lösning för CORS policy: Access-Control-Allow-Origin för React 
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:1338"],
     methods: ["GET", "POST"],
     credentials: true,
     }));
