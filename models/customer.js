@@ -17,9 +17,9 @@ const customer = {
 
         db.all(sql, [], (err, rows) => {
             if (err) {
-                return res.status(400).json({
+                return res.status(500).json({
                     errors: {
-                        status: 400,
+                        status: 500,
                         path: "/customer",
                         title: "Bad request",
                         message: err.message
@@ -63,9 +63,9 @@ const customer = {
 
         db.get(sql, params, function (err, row) {
             if (err) {
-                return res.status(400).json({
+                return res.status(500).json({
                     errors: {
-                        status: 400,
+                        status: 500,
                         path: `/v1/auth${req.path}`,
                         title: "Bad request",
                         message: err.message
@@ -98,9 +98,9 @@ const customer = {
         var sql =`DELETE FROM customer where userid = ?;`;
         var params =[req.params.id];
 
-        db.run(sql, params, function (err, row) {
+        db.run(sql, params, function (err) {
             if (err) {
-                return res.status(400).json({
+                return res.status(500).json({
                     errors: {
                         status: 500,
                         path: `/v1/auth${req.path}`,
@@ -128,6 +128,9 @@ const customer = {
             });
         });
     },
+    /*
+        update specific customer
+    */
     updateSpecificCustomer: function (res, req) {
         var errors=[];
 
@@ -175,9 +178,9 @@ const customer = {
             req.params.id
         ];
 
-        db.run(sql, params, function (err, row) {
+        db.run(sql, params, function (err) {
             if (err) {
-                return res.status(400).json({
+                return res.status(500).json({
                     errors: {
                         status: 500,
                         path: `/v1/auth${req.path}`,

@@ -45,8 +45,9 @@ const bike = {
         let db;
 
         db = database.getDb();
-    
-        var sql ='SELECT *, ? AS interval from bike, city WHERE bikeid = ? AND bike.cityid = city.cityid;';
+
+        var sql =`SELECT *, ? AS interval from bike, city WHERE bikeid = ?
+        AND bike.cityid = city.cityid;`;
         var params =[config.interval, req.params.id];
 
         db.get(sql, params, function (err, row) {
