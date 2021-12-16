@@ -37,4 +37,10 @@ router.get('/canceled',
     (req, res) => travelModel.getCancelQueue(res)
 );
 
+
+//customer simulator can rent a bike
+router.post('/simulation',
+    (req, res) => travelModel.rentBikeSimulation(res, req)
+);
+
 module.exports = router;

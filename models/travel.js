@@ -69,6 +69,16 @@ const travel = {
             });
         });
     },
+    /* the customer simulation can rent a bike */
+    rentBikeSimulation: function(res, req) {
+        //get customerid into user.id
+        req.user = {};
+        req.user.id = req.body.customerid;
+        //add bikeid as params
+        req.params.bikeid = req.body.bikeid;
+        //done in order to use rentBike-function as-is
+        travel.rentBike(res, req);
+    },
     /*
         rent a bike,
         first check if bike exists, then
@@ -301,7 +311,7 @@ const travel = {
         var errors=[];
 
         if (!req.body.battery_level) {
-            errors.push("No batter_level specified");
+            errors.push("No battery_level specified");
         }
         if (!req.body.gps_lat || ! req.body.gps_lon) {
             errors.push("No gps coordinates specified");
@@ -496,7 +506,8 @@ const travel = {
         ];
 
         var paramsTravel = [
-            bike.startDate, bike.bikeid, bike.customerid,
+            bike.startDate,
+            bike.bikeid, bike.customerid,
             bike.rent_time, bike.price,
             bike.gps_lat_start, bike.gps_lon_start,
             bike.gps_lat, bike.gps_lon
