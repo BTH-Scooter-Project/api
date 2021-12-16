@@ -388,6 +388,12 @@ const auth = {
             return next();
         }
 
+        //index page can be reached by anyone
+        if (req.path === '/') {
+            console.log("index page");
+            return next();
+        }
+
         //depending on route the api_key will be found in query or in body parameter
         let clientApiKey = req.query.apiKey || req.body.apiKey;
 
