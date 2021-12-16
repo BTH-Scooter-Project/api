@@ -5,7 +5,7 @@ var router = express.Router();
 router.get('/', function(req, res) {
     const data = {
         data: {
-            msg: "Hello World"
+            message: "API for Scooter project"
         }
     };
 

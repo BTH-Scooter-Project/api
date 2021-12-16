@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nyc --reporter=html --reporter=text --reporter=clover mocha --exit --timeout 10000",
+    "posttest": "npm run eslint",
     "start": "node app.js",
     "start_edit": "nodemon app.js",
     "eslint": "eslint .",
@@ -21,7 +22,11 @@
     "sqlite3": "^5.0.2"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
     "eslint": "^8.3.0",
-    "javascript-style-guide": "^1.0.1"
+    "javascript-style-guide": "^1.0.1",
+    "mocha": "^9.1.3",
+    "nyc": "^15.1.0"
   }
 }
