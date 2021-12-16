@@ -28,6 +28,19 @@ router.get('/customer/:id',
     (req, res) => customerModel.getSpecificCustomer(res, req)
 );
 
+//ta bort specifik kund - endast för inloggad staff/admin
+router.delete('/customer/:id',
+    (req, res, next) => authModel.checkStaffToken(req, res, next),
+    (req, res) => customerModel.deleteSpecificCustomer(res, req)
+);
+
+//uppdatera detaljer om specifik kund - endast för inloggad staff/admin
+router.put('/customer/:id',
+    (req, res, next) => authModel.checkStaffToken(req, res, next),
+    (req, res) => customerModel.updateSpecificCustomer(res, req)
+);
+
+
 //visa alla admin/staff - endast inloggad personal/staff
 router.get('/staff',
     (req, res, next) => authModel.checkStaffToken(req, res, next),
