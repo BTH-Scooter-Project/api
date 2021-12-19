@@ -127,6 +127,7 @@ const auth = {
                             type: "success",
                             message: "Admin logged in",
                             user: user.email,
+                            id: user.staffid,
                             token: jwtToken
                         }
                     });
@@ -141,6 +142,7 @@ const auth = {
                         type: "success",
                         message: "User logged in",
                         user: user.email,
+                        id: user.userid,
                         token: jwtToken
                     }
                 });
