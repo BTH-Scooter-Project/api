@@ -13,5 +13,6 @@ router.get('/', function(res) {
 });
 
 router.get('/:id', (req, res) => bikeModel.getSpecificBike(res, req));
+router.get('/mode', (req, res) => bikeModel.getSystemMode(res, req));
 
 module.exports = router;
