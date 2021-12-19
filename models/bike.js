@@ -78,14 +78,14 @@ const bike = {
     },
 
     //get system mode, simulation = true or false
-    getSystemMode: function (res, req) {
+    getSystemMode: function (res) {
         var data = {
             "interval": config.interval,
-            "simulation": config.mode,
+            "simulation": config.simulation,
         };
 
         return res.status(200).json({"data": data});
-    },
+    }
 };
 
 module.exports = bike;
