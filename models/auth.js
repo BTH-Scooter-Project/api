@@ -217,7 +217,7 @@ const auth = {
             var sql = `INSERT into CUSTOMER
                         (firstname, lastname, password, email, cityid)
                         values (?, ?, ?, ?, ?);`;
-            var params =[data.firstName, data.lastName, hash, data.email, data.cityid];
+            var params =[data.firstName, data.lastName, hash, data.email, data.cityId];
 
             db.run(sql, params, function (err) {
                 if (err) {

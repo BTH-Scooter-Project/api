@@ -5,7 +5,6 @@
 const database = require("../db/database.js");
 
 let rentQueue = [];
-let cancelQueue = [];
 let rentList = [];
 
 const travel = {
@@ -230,16 +229,12 @@ const travel = {
     */
     returnBike: function (res, req) {
         //TEST loggedInCustomerId = req.body.userid,
-        //need to remove checkToken in route
+        //TEST need to remove checkToken in route
         let loggedInCustomerId = req.user.id;
         let bikeId = req.params.bikeid;
 
         //check if bike is in rentList
         let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
-
-        // console.log("rentList: ");
-        // console.log(rentList);
-        // console.log("logged in customer: " + loggedInCustomerId);
 
         if (bikeIndex < 0) {
             return res.status(404).json({
@@ -255,19 +250,14 @@ const travel = {
         //check that logged in customer is the same as the one
         //who had rented the bike in question
         if (rentList[bikeIndex].customerid == loggedInCustomerId) {
-            //add bike to queue of canceled bikes
-            cancelQueue.unshift(bikeId);
+            //add a variable to bike in rentList
+            //customerCancel = that customer has
+            //canceled the ride
+            let bike = rentList[bikeIndex];
 
-            // console.log("cancelQueue");
-            // console.log(cancelQueue);
+            bike.customerCancel = 'true';
 
-            return res.status(201).json({
-                data: {
-                    type: "success",
-                    message: "Bike returned",
-                    bikeid: bikeId
-                }
-            });
+            return travel.cancelBike(res, req, bike, bikeIndex);
         }
 
         return res.status(404).json({
@@ -279,28 +269,6 @@ const travel = {
             }
         });
     },
-
-    /*
-        route returns all newly returned/canceled bikes
-        and empties that queue.
-    */
-    getCancelQueue: function(res) {
-        //temprary queue
-        let returnQueue = cancelQueue;
-
-        // console.log("cancelQueue before empty:");
-        // console.log(cancelQueue);
-
-        //empty cancelQueue
-        cancelQueue = [];
-
-        // console.log("cancelQueue after empty:");
-        // console.log(cancelQueue);
-
-        //return list of bikeids
-        return res.status(200).json(returnQueue);
-    },
-
     /*
         Update bike info
         If canceled = true then remove bike
@@ -382,6 +350,25 @@ const travel = {
         //update bike
         let bike = rentList[bikeIndex];
 
+        //if customer has canceled bike,
+        //the travel has already been saved to DB
+        //remove the bike from rentList and
+        //send back response with canceling-status
+        if (bike.customerCancel) {
+            canceled = 'true';
+
+            rentList.splice(bikeIndex, 1);
+
+            return res.status(200).json({
+                data: {
+                    type: "success",
+                    message: "Bike canceled by customer",
+                    bikeid: bike.bikeid,
+                    canceled: canceled
+                }
+            });
+        }
+
         bike.battery_level = req.body.battery_level;
         bike.gps_lat = req.body.gps_lat;
         bike.gps_lon = req.body.gps_lon;
@@ -400,7 +387,8 @@ const travel = {
             data: {
                 type: "success",
                 message: "Bike updated",
-                bikeid: bike.bikeid
+                bikeid: bike.bikeid,
+                canceled: canceled
             }
         });
     },
@@ -527,13 +515,17 @@ const travel = {
                             }
                         });
                     }
-                    //if bike is updated and travel_history has been added,
+                    //if esc has canceled ride:
+                    //when bike is updated and travel_history has been added,
                     //remove bike from rentList
-                    rentList.splice(bikeIndex, 1);
+                    //if customer has canceled ride leave it
+                    //in order for esc to get canceling-status
+                    if (!bike.customerCancel) {
+                        rentList.splice(bikeIndex, 1);
+                    }
 
-                    // console.log("removing from rentList");
-                    // console.log(rentList);
-
+                    //bike and travel_history has been updated,
+                    //send back OK-response
                     return res.status(200).json({
                         data: {
                             type: "success",
