@@ -81,6 +81,7 @@ const bike = {
         var data = {
             "interval": config.interval,
             "simulation": config.simulation,
+            "nr_of_bikes": config.nr_of_bikes,
         };
 
         return res.status(200).json({"data": data});
