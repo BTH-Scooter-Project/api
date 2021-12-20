@@ -116,7 +116,7 @@ const city = {
 
                 cityInfo[i] = newObj;
 
-                var stationBikes = bikes.find(bike => bike.stationid == row.stationid);
+                let stationBikes = bikes.filter(bike => bike.stationid == row.stationid);
 
                 cityInfo[i].bikes.push(stationBikes);
 
