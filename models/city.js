@@ -105,20 +105,19 @@ const city = {
 
             //for each station, add the corresponding bikes
             rows.forEach((row) => {
+                //get bikes
+                let stationBikes = bikes.filter(bike => bike.stationid == row.stationid);
+
                 let newObj = {
                     stationid: row.stationid,
                     type: row.type,
                     address: row.address,
                     gps_lat: row.gps_lat,
                     gps_lon: row.gps_lon,
-                    bikes: []
+                    bikes: stationBikes
                 };
 
                 cityInfo[i] = newObj;
-
-                let stationBikes = bikes.filter(bike => bike.stationid == row.stationid);
-
-                cityInfo[i].bikes.push(stationBikes);
 
                 i++;
             });
