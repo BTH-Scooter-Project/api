@@ -57,6 +57,49 @@ describe('city', () => {
                 });
         });
     });
+    describe('GET /v1/city/1', () => {
+        it('should get 401 as we do not provide valid api_key', (done) => {
+            chai.request(server)
+                .get("/v1/city/1")
+                .end((err, res) => {
+                    res.should.have.status(401);
+
+                    done();
+                });
+        });
+
+        it('should get 200 as we do provide an apiKey', (done) => {
+            chai.request(server)
+                .get(`/v1/city/1?apiKey=${apiKey}`)
+                .end((err, res) => {
+                    res.should.have.status(200);
+
+                    done();
+                });
+        });
+
+        it('should contain an object with station and bike-data', (done) => {
+            chai.request(server)
+                .get(`/v1/city/1?apiKey=${apiKey}`)
+                .end((err, res) => {
+                    res.should.have.status(200);
+
+                    let reply = res.body;
+
+                    reply.should.be.an("object");
+                    reply.data.should.be.an("array");
+
+                    let bikes = reply.data[0].bikes;
+
+                    bikes.should.be.an("array");
+
+                    bikes[0].name.should.be.a("string").that.equals("cykel3");
+                    // reply.data.should.have.lengthOf(4);
+
+                    done();
+                });
+        });
+    });
     describe('GET /v1/city/1/station', () => {
         it('should get 401 as we do not provide valid api_key', (done) => {
             chai.request(server)
@@ -77,7 +120,7 @@ describe('city', () => {
                 });
         });
 
-        it('should contain an object with city-data', (done) => {
+        it('should contain an object with station-data', (done) => {
             chai.request(server)
                 .get(`/v1/city/1/station?apiKey=${apiKey}`)
                 .end((err, res) => {
@@ -85,13 +128,10 @@ describe('city', () => {
 
                     let reply = res.body;
 
-                    console.log(reply);
-
                     reply.should.be.an("object");
 
-                    // reply.data[1].name.should.be.an('string').that.includes("Sundsvall");
-                    // // reply.data.should.be.an('array').that.includes("Sundsvall");
-                    // reply.data.should.have.lengthOf(4);
+                    reply.data[0].address.should.be.an('string').that.equals("Parkering");
+                    reply.data.should.have.lengthOf(1);
 
                     done();
                 });
