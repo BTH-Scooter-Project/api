@@ -75,6 +75,74 @@ const bike = {
                 });
         });
     },
+    //update bike with specific id
+    updateSpecificBike: function (res, req) {
+        var errors=[];
+
+        if (!req.body.gps_lat || !req.body.gps_lon) {
+            errors.push("Position missing: gps_lat or gps_lon");
+        }
+        if (!req.body.stationid) {
+            errors.push("Need to specify stationid");
+        }
+        if (errors.length) {
+            return res.status(400).json({
+                errors: {
+                    status: 400,
+                    source: `/v1/bike${req.path}`,
+                    message: "Missing input",
+                    detail: errors.join(", ")
+                }
+            });
+        }
+
+        let db;
+
+        db = database.getDb();
+
+        var sql =`UPDATE bike set
+        gps_lat = ?,
+        gps_lon = ?,
+        stationid = ?
+        WHERE bikeid = ?;`;
+        var params = [
+            req.body.gps_lat,
+            req.body.gps_lon,
+            req.body.stationid,
+            req.params.id
+        ];
+
+        db.run(sql, params, function (err) {
+            if (err) {
+                return res.status(500).json({
+                    errors: {
+                        status: 500,
+                        path: `/v1/bike${req.path}`,
+                        title: "Bad request",
+                        message: err.message
+                    }
+                });
+            }
+
+            if (this.changes > 0) {
+                return res.status(200).json({
+                    data: {
+                        message: "Bike updated",
+                        bikeid: req.params.id
+                    }
+                });
+            }
+
+            return res.status(404).json({
+                errors: {
+                    status: 404,
+                    path: `/v1/bike${req.path}`,
+                    title: "Not found",
+                    message: "The bike was not found"
+                }
+            });
+        });
+    },
 
     //get system mode, simulation = true or false
     getSystemMode: function (res) {
