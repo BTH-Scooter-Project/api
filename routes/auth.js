@@ -3,6 +3,7 @@ var router = express.Router();
 const authModel = require("../models/auth.js");
 const customerModel = require("../models/customer.js");
 const staffModel = require("../models/staff.js");
+const travelModel = require("../models/travel.js");
 
 //lägg till ny kund/användare
 router.post('/customer', (req, res) => authModel.register(res, req));
@@ -39,6 +40,13 @@ router.put('/customer/:id',
     (req, res, next) => authModel.checkStaffToken(req, res, next),
     (req, res) => customerModel.updateSpecificCustomer(res, req)
 );
+
+//visa specifik kunds hyrda cyklar (cykel) - endast för den egna inloggade kunden
+router.get('/customer/:id/rented',
+    (req, res, next) => authModel.checkToken(req, res, next),
+    (req, res) => travelModel.getCustomerRentals(res, req)
+);
+
 
 
 //visa alla admin/staff - endast inloggad personal/staff

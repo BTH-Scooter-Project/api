@@ -646,6 +646,46 @@ const travel = {
         return res.status(200).json({
             data: currBikes
         });
+    },
+    /*
+        get specific customers current rentals
+        with bike position
+    */
+    getCustomerRentals: function(res, req) {
+        //check which customer is logged in
+        let loggedInCustomerId = req.user.id;
+
+        //if a request is sent to view any other customers data except the
+        //customers own data, it will be denied.
+        if (loggedInCustomerId != req.params.id) {
+            return res.status(401).json({
+                errors: {
+                    status: 401,
+                    path: `/v1/auth${req.path}`,
+                    title: "Unauthorized",
+                    message: "Current user is not authorized to view data from other users",
+                }
+            });
+        }
+
+        //check if bike is in rentList
+        // let custIndex = rentList.findIndex(v => v.customerid == loggedInCustomerId);
+        let data = rentList.filter(r => r.customerid == loggedInCustomerId);
+
+        if (data.length == 0) {
+            return res.status(404).json({
+                errors: {
+                    status: 404,
+                    path: `/v1/travel${req.path}`,
+                    title: "Not found",
+                    message: "No bikes rented"
+                }
+            });
+        }
+
+        return res.status(200).json({
+            data
+        });
     }
 };
 
