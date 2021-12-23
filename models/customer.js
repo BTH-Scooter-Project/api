@@ -3,6 +3,7 @@
  *
 */
 const database = require("../db/database.js");
+const bcrypt = require('bcryptjs');
 
 const customer = {
     /*
@@ -206,6 +207,95 @@ const customer = {
                     title: "Not found",
                     message: "The customer is not found"
                 }
+            });
+        });
+    },
+    /*
+        customer can update its data:
+        email, password, balance and payment
+    */
+    customerUpdate: async function (res, req) {
+        var errors=[];
+
+        const data = {
+            email: req.body.email,
+            password: req.body.password,
+            balance: req.body.balance,
+            payment: req.body.payment
+        };
+
+        if (!data.email) {
+            errors.push("Email not specified");
+        }
+        if (!data.password) {
+            errors.push("Password not specified");
+        }
+        if (!data.balance) {
+            errors.push("Balance not specified");
+        }
+        if (!data.payment) {
+            errors.push("Payment not specified");
+        }
+        if (errors.length) {
+            return res.status(400).json({
+                errors: {
+                    status: 400,
+                    source: `/v1/auth${req.path}`,
+                    message: "Missing input",
+                    detail: errors.join(", ")
+                }
+            });
+        }
+
+        //check which customer is logged in
+        let loggedInCustomerId = req.user.id;
+
+        let db;
+
+        db = database.getDb();
+
+        //encrypt incoming password
+        bcrypt.hash(data.password, 10, async function(err, hash) {
+            if (err) {
+                return res.status(500).json({
+                    errors: {
+                        status: 500,
+                        source: `/v1/auth${req.path}`,
+                        title: "bcrypt error",
+                        detail: "bcrypt error"
+                    }
+                });
+            }
+
+            console.log("hash: " + hash);
+            console.log("balance: " + data.balance);
+            console.log("payment: " + data.payment);
+            console.log("customerid: " + loggedInCustomerId);
+
+            var sql = `UPDATE CUSTOMER SET
+                        email = ?, password = ?,
+                        balance = ?, payment = ?
+                        WHERE userid = ?;`;
+            var params =[data.email, hash, data.balance, data.payment, loggedInCustomerId];
+
+            db.run(sql, params, function (err) {
+                if (err) {
+                    return res.status(400).json({
+                        errors: {
+                            status: 400,
+                            source: `/v1/auth${req.path}`,
+                            message: "Error creating user",
+                            detail: err.message
+                        }
+                    });
+                }
+                return res.status(200).json({
+                    data: {
+                        type: "success",
+                        message: "Customer updated",
+                        user: data.email
+                    }
+                });
             });
         });
     }

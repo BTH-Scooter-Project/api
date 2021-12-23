@@ -23,6 +23,12 @@ router.get('/customer',
     (req, res) => customerModel.getAllCustomers(res, req)
 );
 
+//uppdatera detaljer om specifik kund - endast för inloggad kund
+router.put('/customer',
+    (req, res, next) => authModel.checkToken(req, res, next),
+    (req, res) => customerModel.customerUpdate(res, req)
+);
+
 //visa specifik kund - endast för den egna inloggade kunden
 router.get('/customer/:id',
     (req, res, next) => authModel.checkToken(req, res, next),
