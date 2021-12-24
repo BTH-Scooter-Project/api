@@ -227,9 +227,6 @@ const customer = {
         if (!data.email) {
             errors.push("Email not specified");
         }
-        if (!data.password) {
-            errors.push("Password not specified");
-        }
         if (!data.balance) {
             errors.push("Balance not specified");
         }
@@ -253,6 +250,35 @@ const customer = {
         let db;
 
         db = database.getDb();
+
+        if (!data.password) {
+            console.log("no password");
+            var sql = `UPDATE CUSTOMER SET
+                        email = ?,
+                        balance = ?, payment = ?
+                        WHERE userid = ?;`;
+            var params =[data.email, data.balance, data.payment, loggedInCustomerId];
+
+            db.run(sql, params, function (err) {
+                if (err) {
+                    return res.status(500).json({
+                        errors: {
+                            status: 500,
+                            source: `/v1/auth${req.path}`,
+                            message: "Error updating user",
+                            detail: err.message
+                        }
+                    });
+                }
+            });
+            return res.status(200).json({
+                data: {
+                    type: "success",
+                    message: "Customer updated",
+                    user: data.email
+                }
+            });
+        }
 
         //encrypt incoming password
         bcrypt.hash(data.password, 10, async function(err, hash) {
@@ -280,11 +306,11 @@ const customer = {
 
             db.run(sql, params, function (err) {
                 if (err) {
-                    return res.status(400).json({
+                    return res.status(500).json({
                         errors: {
-                            status: 400,
+                            status: 500,
                             source: `/v1/auth${req.path}`,
-                            message: "Error creating user",
+                            message: "Error updating user",
                             detail: err.message
                         }
                     });

@@ -215,9 +215,17 @@ const auth = {
             }
 
             var sql = `INSERT into CUSTOMER
-                        (firstname, lastname, password, email, cityid)
-                        values (?, ?, ?, ?, ?);`;
-            var params =[data.firstName, data.lastName, hash, data.email, data.cityId];
+                        (firstname, lastname, password, email, cityid, payment, balance)
+                        values (?, ?, ?, ?, ?, ?, ?);`;
+            var params = [
+                data.firstName,
+                data.lastName,
+                hash,
+                data.email,
+                data.cityId,
+                'prepaid',
+                0
+            ];
 
             db.run(sql, params, function (err) {
                 if (err) {
