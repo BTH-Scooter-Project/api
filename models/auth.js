@@ -266,9 +266,27 @@ const auth = {
             }
 
             //check if row exists ie email exists
-            //if email exists send back that user
-            //is already registered
             if (row) {
+                //if unique_id is provided, check if customer already
+                //has that info set, otherwise update row with unique_id
+                if (req.body.unique_id && !row.unique_id) {
+                    var sql = `UPDATE CUSTOMER
+                                set unique_id = ? where userid = ?;`;
+                    var params = [req.body.unique_id, row.userid];
+
+                    db.run(sql, params, function (err) {
+                        if (err) {
+                            return res.status(500).json({
+                                errors: {
+                                    status: 500,
+                                    source: `/v1/auth${req.path}`,
+                                    message: "Error updating user",
+                                    detail: err.message
+                                }
+                            });
+                        }
+                    });
+                }
                 return res.status(200).json({
                     data: {
                         type: "success",
@@ -325,9 +343,9 @@ const auth = {
 
                 db.run(sql, params, function (err) {
                     if (err) {
-                        return res.status(400).json({
+                        return res.status(500).json({
                             errors: {
-                                status: 400,
+                                status: 500,
                                 source: `/v1/auth${req.path}`,
                                 message: "Error creating user",
                                 detail: err.message
