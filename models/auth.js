@@ -122,7 +122,7 @@ const auth = {
                     let jwtToken = jwt.sign(payload, jwtSecretStaff, { expiresIn: '1h' });
 
                     //if password is correct, return jwt token
-                    return res.json({
+                    return res.status(200).json({
                         data: {
                             type: "success",
                             message: "Admin logged in",
@@ -137,7 +137,7 @@ const auth = {
                 let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '24h' });
 
                 //if password is correct, return jwt token
-                return res.json({
+                return res.status(200).json({
                     data: {
                         type: "success",
                         message: "User logged in",

@@ -588,6 +588,11 @@ const travel = {
         price += priceFreeParking;
         return price;
     },
+
+    /*
+        Get all rented bikes in a specific city
+        ie bikes in rentList
+    */
     getRentedBikes: function (res, req) {
         //TEST
         // rentList = [
@@ -628,11 +633,9 @@ const travel = {
         let cityId = req.params.id;
         let currBikes = [];
 
-        console.log(cityId);
-
         rentList.map(element => {
             if (element.cityid == cityId) {
-                console.log(element.cityid);
+                // console.log(element.cityid);
                 let addBike = {
                     bikeid: element.bikeid,
                     gps_lat: element.gps_lat,
