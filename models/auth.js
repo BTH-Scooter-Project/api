@@ -31,7 +31,8 @@ const auth = {
 
     /**
      * login user or staff if email + password
-     * exists in the db
+     * exists in the db, or for customer if
+     * email + unique_id exists with OAuth login
     */
     login: async function (res, req) {
         let db;
@@ -39,15 +40,27 @@ const auth = {
         db = database.getDb();
 
         const email = req.body.email;
-        const password = req.body.password;
 
-        if (!email || !password) {
+        if (!email) {
             return res.status(401).json({
                 errors: {
                     status: 401,
                     source: `/v1/auth${req.path}`,
-                    title: "Email or password missing",
-                    detail: "Email or password missing in request"
+                    title: "Email missing",
+                    detail: "Email missing in request"
+                }
+            });
+        }
+
+        //need to provide password to login
+        //or unique_id via OAuth in order to login
+        if (!req.body.password && !req.body.unique_id) {
+            return res.status(401).json({
+                errors: {
+                    status: 401,
+                    source: `/v1/auth${req.path}`,
+                    title: "Password or unique_id missing",
+                    detail: "Need to provide unique_id or password"
                 }
             });
         }
@@ -75,15 +88,45 @@ const auth = {
             }
 
             //check if row exists ie email exists
-            //if email exists, continue to check if password is valid
+            //if email exists, continue to check if password
+            //or unique_id is valid
             if (row) {
-                return auth.comparePasswords(
-                    res,
-                    password,
-                    row,
-                    req.staff,
-                    req.path
-                );
+                //if password is provided, continue checking that
+                if(req.body.password) {
+                    return auth.comparePasswords(
+                        res,
+                        req.body.password,
+                        row,
+                        req.staff,
+                        req.path
+                    );
+                }
+                //if unique_id is provided, check that its correct
+                //for current customer login
+                if (req.body.unique_id == row.unique_id) {
+                    //else try login customer
+                    let payload = { email: row.email, id: row.userid };
+                    let jwtToken = jwt.sign(payload, jwtSecret, { expiresIn: '24h' });
+
+                    //if unique_id is correct, return jwt token
+                    return res.status(200).json({
+                        data: {
+                            type: "success",
+                            message: "User logged in",
+                            user: row.email,
+                            id: row.userid,
+                            token: jwtToken
+                        }
+                    });
+                }
+                return res.status(401).json({
+                    errors: {
+                        status: 401,
+                        source: `/v1/auth${req.path}`,
+                        title: "Incorrect data provided",
+                        detail: "User with provided unique_id not found."
+                    }
+                });
             }
 
             return res.status(401).json({
@@ -160,6 +203,9 @@ const auth = {
     },
     /**
      * register new user with email + password
+     * first check if user already exists
+     * then check if its a "normal register"
+     * or OAuth and register user depending on input
      * password is encrypted with bcrypt
     */
     register: async function (res, req) {
@@ -201,50 +247,101 @@ const auth = {
             });
         }
 
-        //encrypt incoming password
-        bcrypt.hash(password, 10, async function(err, hash) {
+        //check if user already exists
+        var sql ='SELECT * from customer WHERE email = ?;';
+
+        var params =[data.email];
+
+        //check if user exists in customer table
+        db.get(sql, params, function (err, row) {
             if (err) {
                 return res.status(500).json({
                     errors: {
                         status: 500,
-                        source: `/v1/auth${req.path}`,
-                        title: "bcrypt error",
-                        detail: "bcrypt error"
+                        path: `/v1/auth${req.path}`,
+                        title: "Bad request",
+                        message: err.message
                     }
                 });
             }
 
-            var sql = `INSERT into CUSTOMER
-                        (firstname, lastname, password, email, cityid, payment, balance)
-                        values (?, ?, ?, ?, ?, ?, ?);`;
-            var params = [
-                data.firstName,
-                data.lastName,
-                hash,
-                data.email,
-                data.cityId,
-                'prepaid',
-                0
-            ];
-
-            db.run(sql, params, function (err) {
-                if (err) {
-                    return res.status(400).json({
-                        errors: {
-                            status: 400,
-                            source: `/v1/auth${req.path}`,
-                            message: "Error creating user",
-                            detail: err.message
-                        }
-                    });
-                }
-                return res.status(201).json({
+            //check if row exists ie email exists
+            //if email exists send back that user
+            //is already registered
+            if (row) {
+                return res.status(200).json({
                     data: {
                         type: "success",
-                        message: "User created",
+                        message: "User already exists",
                         user: data.email,
                         id: this.lastID
                     }
+                });
+            }
+
+            //encrypt incoming password
+            bcrypt.hash(password, 10, async function(err, hash) {
+                if (err) {
+                    return res.status(500).json({
+                        errors: {
+                            status: 500,
+                            source: `/v1/auth${req.path}`,
+                            title: "bcrypt error",
+                            detail: "bcrypt error"
+                        }
+                    });
+                }
+
+                var sql = `INSERT into CUSTOMER
+                            (firstname, lastname, password, email, cityid, payment, balance)
+                            values (?, ?, ?, ?, ?, ?, ?);`;
+                var params = [
+                    data.firstName,
+                    data.lastName,
+                    hash,
+                    data.email,
+                    data.cityId,
+                    'prepaid',
+                    0
+                ];
+
+                //if OAuth customer, unique_id is also sent. Add that to parameters
+                if (req.body.unique_id) {
+                    sql = `INSERT into CUSTOMER
+                                (firstname, lastname, password, email, cityid, unique_id, payment, balance)
+                                values (?, ?, ?, ?, ?, ?, ?, ?);`;
+
+                    var params = [
+                        data.firstName,
+                        data.lastName,
+                        hash,
+                        data.email,
+                        data.cityId,
+                        req.body.unique_id,
+                        'prepaid',
+                        0
+                    ];
+                }
+
+                db.run(sql, params, function (err) {
+                    if (err) {
+                        return res.status(400).json({
+                            errors: {
+                                status: 400,
+                                source: `/v1/auth${req.path}`,
+                                message: "Error creating user",
+                                detail: err.message
+                            }
+                        });
+                    }
+                    return res.status(201).json({
+                        data: {
+                            type: "success",
+                            message: "User created",
+                            user: data.email,
+                            id: this.lastID
+                        }
+                    });
                 });
             });
         });
