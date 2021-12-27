@@ -165,14 +165,12 @@ const customer = {
         var sql =`UPDATE customer set
         firstname = ?,
         lastname = ?,
-        email = ?,
         cityid = ?,
         payment = ?,
         balance = ? WHERE userid = ?;`;
         var params = [
             req.body.firstname,
             req.body.lastname,
-            req.body.email,
             req.body.cityid,
             req.body.payment,
             req.body.balance,
@@ -254,10 +252,9 @@ const customer = {
         if (!data.password) {
             console.log("no password");
             var sql = `UPDATE CUSTOMER SET
-                        email = ?,
                         balance = ?, payment = ?
                         WHERE userid = ?;`;
-            var params =[data.email, data.balance, data.payment, loggedInCustomerId];
+            var params =[data.balance, data.payment, loggedInCustomerId];
 
             db.run(sql, params, function (err) {
                 if (err) {
@@ -299,10 +296,10 @@ const customer = {
             console.log("customerid: " + loggedInCustomerId);
 
             var sql = `UPDATE CUSTOMER SET
-                        email = ?, password = ?,
+                        password = ?,
                         balance = ?, payment = ?
                         WHERE userid = ?;`;
-            var params =[data.email, hash, data.balance, data.payment, loggedInCustomerId];
+            var params =[hash, data.balance, data.payment, loggedInCustomerId];
 
             db.run(sql, params, function (err) {
                 if (err) {
