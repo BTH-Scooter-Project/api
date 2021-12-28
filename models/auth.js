@@ -92,7 +92,7 @@ const auth = {
             //or unique_id is valid
             if (row) {
                 //if password is provided, continue checking that
-                if(req.body.password) {
+                if (req.body.password) {
                     return auth.comparePasswords(
                         res,
                         req.body.password,
@@ -326,10 +326,11 @@ const auth = {
                 //if OAuth customer, unique_id is also sent. Add that to parameters
                 if (req.body.unique_id) {
                     sql = `INSERT into CUSTOMER
-                                (firstname, lastname, password, email, cityid, unique_id, payment, balance)
+                                (firstname, lastname, password, email,
+                                cityid, unique_id, payment, balance)
                                 values (?, ?, ?, ?, ?, ?, ?, ?);`;
 
-                    var params = [
+                    params = [
                         data.firstName,
                         data.lastName,
                         hash,

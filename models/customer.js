@@ -138,9 +138,6 @@ const customer = {
         if (!req.body.firstname || !req.body.lastname) {
             errors.push("First or last name not specified");
         }
-        if (!req.body.email) {
-            errors.push("Email not specified");
-        }
         if (!req.body.cityid) {
             errors.push("Cityid not specified");
         }
@@ -210,21 +207,17 @@ const customer = {
     },
     /*
         customer can update its data:
-        email, password, balance and payment
+        password, balance and payment
     */
     customerUpdate: async function (res, req) {
         var errors=[];
 
         const data = {
-            email: req.body.email,
             password: req.body.password,
             balance: req.body.balance,
             payment: req.body.payment
         };
 
-        if (!data.email) {
-            errors.push("Email not specified");
-        }
         if (!data.balance) {
             errors.push("Balance not specified");
         }
@@ -250,7 +243,6 @@ const customer = {
         db = database.getDb();
 
         if (!data.password) {
-            console.log("no password");
             var sql = `UPDATE CUSTOMER SET
                         balance = ?, payment = ?
                         WHERE userid = ?;`;
@@ -272,7 +264,7 @@ const customer = {
                 data: {
                     type: "success",
                     message: "Customer updated",
-                    user: data.email
+                    user: req.user.email
                 }
             });
         }
@@ -289,11 +281,6 @@ const customer = {
                     }
                 });
             }
-
-            console.log("hash: " + hash);
-            console.log("balance: " + data.balance);
-            console.log("payment: " + data.payment);
-            console.log("customerid: " + loggedInCustomerId);
 
             var sql = `UPDATE CUSTOMER SET
                         password = ?,
@@ -316,7 +303,7 @@ const customer = {
                     data: {
                         type: "success",
                         message: "Customer updated",
-                        user: data.email
+                        user: req.user.email
                     }
                 });
             });
