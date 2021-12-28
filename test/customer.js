@@ -132,66 +132,228 @@ describe('customer', () => {
                     res.should.have.status(200);
                     res.body.should.be.an("object");
                     res.body.data.should.be.an("array");
-                    res.body.data.length.should.equal(7);
+
+                    let result = res.body.data;
+
+                    result.length.should.equal(7);
+
+                    result[0].should.have.property("userid");
+                    result[0].userid.should.equal(1);
 
                     done();
                 });
         });
     });
 
-    //create/register user
-    describe('POST /v1/auth/customer', () => {
-        it('should get 401 as we do not provide password', (done) => {
-            let user = {
-                email: "test123@test.se",
-                // password: "test123"
+    //edit a customer by userid, must be a logged in staff
+    describe('PUT /v1/auth/customer/2', () => {
+        let custId = 2;
+        let custIdNonExistent = 11;
+
+        it('should get 401 as we are not logged in', (done) => {
+            let custUpdate = {
+                firstname: "Konrad",
+                lastname: "Magnusson",
+                cityid: 2,
+                payment: "card",
+                balance: 200
             };
 
             chai.request(server)
-                .post(`/v1/auth/customer?apiKey=${apiKey}`)
-                .send(user)
+                .put(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(401);
+                    res.body.should.be.an("object");
+                    res.body.errors.status.should.be.equal(401);
+                    done();
+                });
+        });
+
+        it('should get 200 login staff', (done) => {
+            let staff = {
+                email: "test@test.se",
+                password: "test123"
+            };
+
+            chai.request(server)
+                .post(`/v1/auth/staff/login?apiKey=${apiKey}`)
+                .send(staff)
+                .end((err, res) => {
+                    res.should.have.status(200);
+
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Admin logged in");
+
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
+
+                    result.should.have.property("token");
+                    token = res.body.data.token;
+
+                    done();
+                });
+        });
+
+        it('should get 400 as we provide token but not firstname', (done) => {
+            let custUpdate = {
+                // firstname: "Konrad",
+                lastname: "Magnusson",
+                cityid: 2,
+                payment: "card",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
                 .end((err, res) => {
                     res.should.have.status(400);
                     res.body.should.be.an("object");
-                    res.body.errors.status.should.be.equal(400);
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Missing input");
+                    result.should.have.property("detail");
+                    result.detail.should.equal("First or last name not specified");
                     done();
                 });
         });
 
-        it('should get 201 HAPPY PATH', (done) => {
-            let user = {
-                email: "test123@test.se",
-                password: "test123",
-                firstname: "test",
-                lastname: "testsson",
-                cityid: 3
+        it('should get 400 as we provide token but not cityid', (done) => {
+            let custUpdate = {
+                firstname: "Konrad",
+                lastname: "Magnusson",
+                // cityid: 2,
+                payment: "card",
+                balance: 200
             };
 
             chai.request(server)
-                .post(`/v1/auth/customer?apiKey=${apiKey}`)
-                .send(user)
+                .put(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
                 .end((err, res) => {
-                    res.should.have.status(201);
+                    res.should.have.status(400);
                     res.body.should.be.an("object");
-                    res.body.should.have.property("data");
-                    res.body.data.should.have.property("message");
-                    res.body.data.message.should.equal("User created");
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Missing input");
+                    result.should.have.property("detail");
+                    result.detail.should.equal("Cityid not specified");
+                    done();
+                });
+        });
+
+        it('should get 400 as we provide token but not payment', (done) => {
+            let custUpdate = {
+                firstname: "Konrad",
+                lastname: "Magnusson",
+                cityid: 2,
+                // payment: "card",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Missing input");
+                    result.should.have.property("detail");
+                    result.detail.should.equal("Payment method or balance missing");
+                    done();
+                });
+        });
+
+        it('should get 404 as we provide token but customer does not exist', (done) => {
+            let custUpdate = {
+                firstname: "Konrad",
+                lastname: "Magnusson",
+                cityid: 2,
+                payment: "card",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer/${custIdNonExistent}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.be.an("object");
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("title");
+                    result.title.should.equal("Not found");
+                    result.should.have.property("message");
+                    result.message.should.equal("The customer is not found");
+                    done();
+                });
+        });
+
+        it('should get 200 as we do provide token', (done) => {
+            let custUpdate = {
+                firstname: "Konrad",
+                lastname: "Magnusson",
+                cityid: 2,
+                payment: "card",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+
+                    res.body.data.should.be.an("object");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Customer updated");
+                    result.should.have.property("customerid");
+                    result.customerid.should.equal(custId.toString());
                     done();
                 });
         });
     });
 
-    //login user
-    describe('POST /v1/auth/customer/login', () => {
-        it('should get 401 as we do not provide password', (done) => {
-            let user = {
-                email: "fredrica123@live.com",
-                // password: "test123"
-            };
+    //delete a customer by userid, must be a logged in staff
+    describe('DELETE /v1/auth/customer/3', () => {
+        let custId = 3;
+        let custIdNonExistent =10;
 
+        it('should get 401 as we are not logged in', (done) => {
             chai.request(server)
-                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
-                .send(user)
+                .delete(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
                 .end((err, res) => {
                     res.should.have.status(401);
                     res.body.should.be.an("object");
@@ -200,34 +362,102 @@ describe('customer', () => {
                 });
         });
 
-        it('should get 401 as we do not provide email', (done) => {
-            let user = {
-                // email: "fredrica123@live.com",
+        it('should get 200 login staff', (done) => {
+            let staff = {
+                email: "test@test.se",
                 password: "test123"
             };
 
             chai.request(server)
-                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
-                .send(user)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                    res.body.should.be.an("object");
-                    res.body.errors.status.should.be.equal(401);
-                    done();
-                });
-        });
-
-        it('should get 200 HAPPY PATH', (done) => {
-            let user = {
-                email: "fredrica123@live.com",
-                password: "test123"
-            };
-
-            chai.request(server)
-                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
-                .send(user)
+                .post(`/v1/auth/staff/login?apiKey=${apiKey}`)
+                .send(staff)
                 .end((err, res) => {
                     res.should.have.status(200);
+
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Admin logged in");
+
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
+
+                    result.should.have.property("token");
+                    token = res.body.data.token;
+
+                    done();
+                });
+        });
+
+        it('should get 404 as we provide token but customer doesnt exist', (done) => {
+            chai.request(server)
+                .delete(`/v1/auth/customer/${custIdNonExistent}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("title");
+                    result.title.should.equal("Not found");
+                    result.should.have.property("message");
+                    result.message.should.equal(
+                        "The customer is not found");
+
+                    done();
+                });
+        });
+
+        it('should get 204 as we do provide token', (done) => {
+            chai.request(server)
+                .delete(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .end((err, res) => {
+                    res.should.have.status(204);
+
+                    done();
+                });
+        });
+    });
+
+    //get a specific customer, must be that customer logged in
+    describe('GET /v1/auth/customer/2', () => {
+        let custId = 2;
+        let anotherCustId = 3;
+
+        it('should get 401 as we are not logged in', (done) => {
+            let customer = {
+                email: "test2@test.se",
+                password: "test123",
+            };
+
+            chai.request(server)
+                .get(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .send(customer)
+                .end((err, res) => {
+                    res.should.have.status(401);
+                    res.body.should.be.an("object");
+                    res.body.errors.status.should.be.equal(401);
+                    done();
+                });
+        });
+
+        it('should get 200 login customer', (done) => {
+            let customer = {
+                email: "test2@test.se",
+                password: "test123",
+            };
+
+            chai.request(server)
+                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
+                .send(customer)
+                .end((err, res) => {
+                    res.should.have.status(200);
+
                     res.body.should.be.an("object");
                     res.body.should.have.property("data");
 
@@ -237,11 +467,212 @@ describe('customer', () => {
                     result.message.should.equal("User logged in");
 
                     result.should.have.property("user");
-                    result.user.should.equal("fredrica123@live.com");
+                    result.user.should.equal("test2@test.se");
 
                     result.should.have.property("token");
-                    // token = res.body.data.token;
+                    token = res.body.data.token;
 
+                    done();
+                });
+        });
+
+        it('should get 401 as we try to access another customers data', (done) => {
+            chai.request(server)
+                .get(`/v1/auth/customer/${anotherCustId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .end((err, res) => {
+                    res.should.have.status(401);
+                    res.body.should.be.an("object");
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("title");
+                    result.title.should.equal("Unauthorized");
+                    result.should.have.property("message");
+                    result.message.should.equal(
+                        "Current user is not authorized to view data from other users");
+                    done();
+                });
+        });
+
+        it('should get 200 as we do provide token', (done) => {
+            chai.request(server)
+                .get(`/v1/auth/customer/${custId}?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+                    res.body.data.should.be.an("object");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("userid");
+                    result.userid.should.equal(custId);
+                    result.should.have.property("firstname");
+                    result.firstname.should.equal("Konrad");
+                    done();
+                });
+        });
+    });
+
+    //edit a customer, the customer is logged in
+    describe('PUT /v1/auth/customer', () => {
+        it('should get 401 as we are not logged in', (done) => {
+            let custUpdate = {
+                password: "abc123",
+                payment: "card",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer/?apiKey=${apiKey}`)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(401);
+                    res.body.should.be.an("object");
+                    res.body.errors.status.should.be.equal(401);
+                    done();
+                });
+        });
+
+        it('should get 200 login customer', (done) => {
+            let customer = {
+                email: "test@test.se",
+                password: "test123"
+            };
+
+            chai.request(server)
+                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
+                .send(customer)
+                .end((err, res) => {
+                    res.should.have.status(200);
+
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("User logged in");
+
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
+
+                    result.should.have.property("token");
+                    token = res.body.data.token;
+
+                    done();
+                });
+        });
+
+        it('should get 400 as we provide token but not payment', (done) => {
+            let custUpdate = {
+                password: "abc123",
+                // payment: "cash",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Missing input");
+                    result.should.have.property("detail");
+                    result.detail.should.equal("Payment not specified");
+                    done();
+                });
+        });
+
+        it('should get 400 as we provide token but not balance', (done) => {
+            let custUpdate = {
+                password: "abc123",
+                payment: "cash",
+                // balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Missing input");
+                    result.should.have.property("detail");
+                    result.detail.should.equal("Balance not specified");
+                    done();
+                });
+        });
+
+        //update logged in customer, not updating password
+        it('should get 200 as we provide token, no password provided', (done) => {
+            let custUpdate = {
+                // password: "abc123",
+                payment: "cash",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+
+                    res.body.data.should.be.an("object");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Customer updated");
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
+                    done();
+                });
+        });
+
+        //update logged in customer, also updating to new password
+        it('should get 200 as we provide token, password change', (done) => {
+            let custUpdate = {
+                password: "abc123",
+                payment: "cash",
+                balance: 200
+            };
+
+            chai.request(server)
+                .put(`/v1/auth/customer?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .send(custUpdate)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+
+                    res.body.data.should.be.an("object");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("Customer updated");
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
                     done();
                 });
         });

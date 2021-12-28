@@ -33,7 +33,7 @@ const customer = {
         });
     },
     /*
-        get specific customer
+        get specific customer, for logged in customer
     */
     getSpecificCustomer: function (res, req) {
         let db;
@@ -46,7 +46,7 @@ const customer = {
         //if a request is sent to view any other customers data except the
         //customers own data, it will be denied.
         if (loggedInCustomerId != req.params.id) {
-            return res.status(400).json({
+            return res.status(401).json({
                 errors: {
                     status: 401,
                     path: `/v1/auth${req.path}`,

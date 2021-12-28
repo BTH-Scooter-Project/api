@@ -63,7 +63,7 @@ INSERT INTO customer (userid, firstname, lastname, password, email, cityid, paym
 INSERT INTO customer (userid, firstname, lastname, password, email, cityid, payment, balance, unique_id) VALUES (4, 'Fredrica', 'Gustavsson', '$2a$10$VtbmFuD6v5m3KHujohQZ8.xazF2JziA5uUSinttbKp53JH2EdKPzu', 'fredrica123@live.com', 2, 'prepaid', 500, NULL);
 INSERT INTO customer (userid, firstname, lastname, password, email, cityid, payment, balance, unique_id) VALUES (5, 'Lowe', 'Jansson', '$2a$10$VtbmFuD6v5m3KHujohQZ8.xazF2JziA5uUSinttbKp53JH2EdKPzu', 'lowe645@hotmail.com', 1, 'card', 420, NULL);
 INSERT INTO customer (userid, firstname, lastname, password, email, cityid, payment, balance, unique_id) VALUES (6, 'Isak', 'Jönsson', '$2a$10$VtbmFuD6v5m3KHujohQZ8.xazF2JziA5uUSinttbKp53JH2EdKPzu', 'isak678@gmail.com', 3, 'prepaid', 9, NULL);
-INSERT INTO customer (userid, firstname, lastname, password, email, cityid, payment, balance, unique_id) VALUES (7, 'Nenad', 'Cuturic', '$2b$10$kFANZPJwO/aGGXtlaf7IVeI47KCZlswg60jdccUgeFiiwRRDgUa6C', 'test@mail.com', 2, 'card', 400, NULL);
+INSERT INTO customer (userid, firstname, lastname, password, email, cityid, payment, balance, unique_id) VALUES (7, 'Nenad', 'Cuturic', '$2b$10$kFANZPJwO/aGGXtlaf7IVeI47KCZlswg60jdccUgeFiiwRRDgUa6C', 'test@mail.com', 2, 'card', 400, 101);
 
 DROP TABLE IF EXISTS staff;
 CREATE TABLE "staff" (
