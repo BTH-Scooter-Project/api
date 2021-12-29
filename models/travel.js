@@ -162,8 +162,8 @@ const travel = {
                 });
             }
 
-            // hämta dessa värden nu från bike eller efter resan
-            // testar att hämta före resan, blir
+            // hämta dessa värden nu från bike
+            // dvs hämtar före resan, blir
             // mer data att spara i API:t men
             // en mindre select mot db efter resan
 
@@ -175,6 +175,8 @@ const travel = {
                 battery_capacity: bike.battery_capacity,
                 gps_lat_start: bike.gps_lat,
                 gps_lon_start: bike.gps_lon,
+                gps_lat: bike.gps_lat,
+                gps_lon: bike.gps_lon,
                 start_station: bike.stationid,
             };
 
