@@ -85,6 +85,9 @@ const bike = {
         if (!req.body.stationid) {
             errors.push("Need to specify stationid");
         }
+        if (!req.body.status) {
+            errors.push("Need to specify status");
+        }
         if (errors.length) {
             return res.status(400).json({
                 errors: {
@@ -103,12 +106,14 @@ const bike = {
         var sql =`UPDATE bike set
         gps_lat = ?,
         gps_lon = ?,
-        stationid = ?
+        stationid = ?,
+        status = ?
         WHERE bikeid = ?;`;
         var params = [
             req.body.gps_lat,
             req.body.gps_lon,
             req.body.stationid,
+            req.body.status,
             req.params.id
         ];
 
