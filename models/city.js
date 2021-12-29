@@ -163,7 +163,7 @@ const city = {
         let cityId = req.params.id;
 
         db = database.getDb();
-        var sql = `select name, image, description, status,
+        var sql = `select bikeid, name, image, description, status,
         battery_level, gps_lat, gps_lon from bike
         where cityid = ?;`;
 
