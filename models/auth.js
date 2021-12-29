@@ -466,9 +466,9 @@ const auth = {
         if (token) {
             jwt.verify(token, currentSecret, function(err, decoded) {
                 if (err) {
-                    return res.status(500).json({
+                    return res.status(400).json({
                         errors: {
-                            status: 500,
+                            status: 400,
                             source: `/v1/auth${req.path}`,
                             title: "Failed authentication",
                             detail: err.message

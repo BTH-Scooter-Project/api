@@ -30,6 +30,7 @@ const apiKey = process.env.API_KEY || config.apikey;
 const testScript = process.env.TEST_SCRIPT || config.test_script;
 
 let token = "";
+let nonValidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
 
 describe('customer', () => {
     before(() => {
@@ -119,6 +120,24 @@ describe('customer', () => {
 
                     result.should.have.property("token");
                     token = res.body.data.token;
+
+                    done();
+                });
+        });
+
+        it('should get 400 as we provide non-valid token', (done) => {
+            chai.request(server)
+                .get(`/v1/auth/customer?apiKey=${apiKey}`)
+                .set("x-access-token", nonValidToken)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("title");
+                    result.title.should.equal("Failed authentication");
 
                     done();
                 });

@@ -68,11 +68,11 @@ router.get("/hello/:msg", (req, res) => {
 router.get("/hello/:msg/test", (req, res) => {
     const data = {
         data: {
-            msg: req.params.msg
+            msg: "testing " + req.params.msg
         }
     };
 
-    res.json("testing " + data.data.msg);
+    res.json(data);
 });
 
 module.exports = router;
