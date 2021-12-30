@@ -164,7 +164,7 @@ const city = {
 
         db = database.getDb();
         var sql = `select bikeid, name, image, description, status,
-        battery_level, gps_lat, gps_lon from bike
+        battery_level, gps_lat, gps_lon, stationid from bike
         where cityid = ?;`;
 
         var params =[cityId];
