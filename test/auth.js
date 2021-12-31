@@ -172,35 +172,35 @@ describe('auth', () => {
                 });
         });
 
-        it('should get 200 HAPPY PATH with unique_id login', (done) => {
-            let user = {
-                email: "test@mail.com",
-                unique_id: 101
-
-            };
-
-            chai.request(server)
-                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
-                .send(user)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.an("object");
-                    res.body.should.have.property("data");
-
-                    let result = res.body.data;
-
-                    result.should.have.property("message");
-                    result.message.should.equal("User logged in");
-
-                    result.should.have.property("user");
-                    result.user.should.equal("test@mail.com");
-
-                    result.should.have.property("token");
-                    // token = res.body.data.token;
-
-                    done();
-                });
-        });
+        // it('should get 200 HAPPY PATH with unique_id login', (done) => {
+        //     let user = {
+        //         email: "test@mail.com",
+        //         unique_id: 101
+        //
+        //     };
+        //
+        //     chai.request(server)
+        //         .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
+        //         .send(user)
+        //         .end((err, res) => {
+        //             res.should.have.status(200);
+        //             res.body.should.be.an("object");
+        //             res.body.should.have.property("data");
+        //
+        //             let result = res.body.data;
+        //
+        //             result.should.have.property("message");
+        //             result.message.should.equal("User logged in");
+        //
+        //             result.should.have.property("user");
+        //             result.user.should.equal("test@mail.com");
+        //
+        //             result.should.have.property("token");
+        //             // token = res.body.data.token;
+        //
+        //             done();
+        //         });
+        // });
 
         it('should get 200 HAPPY PATH', (done) => {
             let user = {
