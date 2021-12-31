@@ -172,6 +172,7 @@ describe('auth', () => {
                 });
         });
 
+        //TODO
         // it('should get 200 HAPPY PATH with unique_id login', (done) => {
         //     let user = {
         //         email: "test@mail.com",

@@ -1,3 +1,5 @@
+[![Node.js CI](https://github.com/BTH-Scooter-Project/api/actions/workflows/node.js.yml/badge.svg)](https://github.com/BTH-Scooter-Project/api/actions/workflows/node.js.yml)
+
 REST-API
 ==========
 Basic API created. Connection to sqlite database established in db/database.js. For implemented routes
