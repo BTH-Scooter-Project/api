@@ -157,8 +157,8 @@ describe('auth', () => {
 
         it('should get 401 as we provide incorrect unique_id', (done) => {
             let user = {
-                email: "test@mail.com",
-                unique_id: 111
+                email: "test@test.se",
+                unique_id: 89
             };
 
             chai.request(server)
@@ -173,35 +173,34 @@ describe('auth', () => {
         });
 
         //TODO
-        // it('should get 200 HAPPY PATH with unique_id login', (done) => {
-        //     let user = {
-        //         email: "test@mail.com",
-        //         unique_id: 101
-        //
-        //     };
-        //
-        //     chai.request(server)
-        //         .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
-        //         .send(user)
-        //         .end((err, res) => {
-        //             res.should.have.status(200);
-        //             res.body.should.be.an("object");
-        //             res.body.should.have.property("data");
-        //
-        //             let result = res.body.data;
-        //
-        //             result.should.have.property("message");
-        //             result.message.should.equal("User logged in");
-        //
-        //             result.should.have.property("user");
-        //             result.user.should.equal("test@mail.com");
-        //
-        //             result.should.have.property("token");
-        //             // token = res.body.data.token;
-        //
-        //             done();
-        //         });
-        // });
+        it('should get 200 HAPPY PATH with unique_id login', (done) => {
+            let user = {
+                email: "test@test.se",
+                unique_id: 88
+            };
+
+            chai.request(server)
+                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
+                .send(user)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("User logged in");
+
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
+
+                    result.should.have.property("token");
+                    // token = res.body.data.token;
+
+                    done();
+                });
+        });
 
         it('should get 200 HAPPY PATH', (done) => {
             let user = {

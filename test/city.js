@@ -111,7 +111,7 @@ describe('city', () => {
                 });
         });
     });
-    describe('GET /v1/city/1', () => {
+    describe('GET /v1/city/<id>', () => {
         it('should get 401 as we do not provide valid api_key', (done) => {
             chai.request(server)
                 .get("/v1/city/1")
@@ -127,6 +127,23 @@ describe('city', () => {
                 .get(`/v1/city/1?apiKey=${apiKey}`)
                 .end((err, res) => {
                     res.should.have.status(200);
+
+                    done();
+                });
+        });
+
+        it('should get 400 as we provide apiKey but incorrect cityid', (done) => {
+            chai.request(server)
+                .get(`/v1/city/100?apiKey=${apiKey}`)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("errors");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("No such city");
 
                     done();
                 });
@@ -186,6 +203,45 @@ describe('city', () => {
 
                     reply.data[0].address.should.be.an('string').that.equals("Parkering");
                     reply.data.should.have.lengthOf(1);
+
+                    done();
+                });
+        });
+    });
+
+    describe('GET /v1/city/1/bike', () => {
+        it('should get 401 as we do not provide valid api_key', (done) => {
+            chai.request(server)
+                .get("/v1/city/1/bike")
+                .end((err, res) => {
+                    res.should.have.status(401);
+
+                    done();
+                });
+        });
+        it('should get 200 as we do provide an apiKey', (done) => {
+            chai.request(server)
+                .get(`/v1/city/1/bike?apiKey=${apiKey}`)
+                .end((err, res) => {
+                    res.should.have.status(200);
+
+                    done();
+                });
+        });
+
+        it('should contain an object with bike-data', (done) => {
+            chai.request(server)
+                .get(`/v1/city/1/bike?apiKey=${apiKey}`)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let reply = res.body.data;
+
+                    reply.should.be.an("array");
+                    reply.should.have.lengthOf(2);
+                    reply[0].name.should.be.a('string').that.equals("cykel3");
 
                     done();
                 });
