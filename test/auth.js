@@ -33,47 +33,50 @@ const testScript = process.env.TEST_SCRIPT || config.test_script;
 
 describe('auth', () => {
     before(() => {
-        let db;
+        return new Promise((resolve) => {
+            let db;
 
-        db = database.getDb();
+            db = database.getDb();
 
-        const dataSql = fs.readFileSync(testScript).toString();
+            const dataSql = fs.readFileSync(testScript).toString();
 
-        // Convert the SQL string to array to run one at a time.
-        const dataArr = dataSql.toString().split(";");
+            // Convert the SQL string to array to run one at a time.
+            const dataArr = dataSql.toString().split(";");
 
-        //last row is empty, creates a last "empty" ('\n')-element
-        dataArr.splice(-1);
+            //last row is empty, creates a last "empty" ('\n')-element
+            dataArr.splice(-1);
 
-        // db.serialize ensures that queries are one after the other
-        //depending on which one came first in your `dataArr`
-        db.serialize(() => {
-            // db.run runs your SQL query against the DB
-            db.run("BEGIN TRANSACTION;");
-            // Loop through the `dataArr` and db.run each query
-            dataArr.forEach(query => {
-                if (query) {
-                    // Add the delimiter back to each query
-                    //before you run them
-                    query += ";";
-                    db.run(query, err => {
-                        if (err) {
-                            throw err;
-                        }
-                    });
-                }
+            // db.serialize ensures that queries are one after the other
+            //depending on which one came first in your `dataArr`
+            db.serialize(() => {
+                // db.run runs your SQL query against the DB
+                db.run("BEGIN TRANSACTION;");
+                // Loop through the `dataArr` and db.run each query
+                dataArr.forEach(query => {
+                    if (query) {
+                        // Add the delimiter back to each query
+                        //before you run them
+                        query += ";";
+                        db.run(query, err => {
+                            if (err) {
+                                throw err;
+                            }
+                        });
+                    }
+                });
+                db.run("COMMIT;");
             });
-            db.run("COMMIT;");
-        });
 
-        console.log("running DB");
+            console.log("running DB");
 
-        // Close the DB connection
-        db.close(err => {
-            if (err) {
-                return console.error(err.message);
-            }
-            // console.log("Closed the database connection.");
+            // Close the DB connection
+            db.close(err => {
+                if (err) {
+                    return console.error(err.message);
+                }
+                resolve();
+                // console.log("Closed the database connection.");
+            });
         });
     });
 
@@ -172,35 +175,34 @@ describe('auth', () => {
                 });
         });
 
-        //TODO
-        // it('should get 200 HAPPY PATH with unique_id login', (done) => {
-        //     let user = {
-        //         email: "test@test.se",
-        //         unique_id: 88
-        //     };
-        //
-        //     chai.request(server)
-        //         .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
-        //         .send(user)
-        //         .end((err, res) => {
-        //             res.should.have.status(200);
-        //             res.body.should.be.an("object");
-        //             res.body.should.have.property("data");
-        //
-        //             let result = res.body.data;
-        //
-        //             result.should.have.property("message");
-        //             result.message.should.equal("User logged in");
-        //
-        //             result.should.have.property("user");
-        //             result.user.should.equal("test@test.se");
-        //
-        //             result.should.have.property("token");
-        //             // token = res.body.data.token;
-        //
-        //             done();
-        //         });
-        // });
+        it('should get 200 HAPPY PATH with unique_id login', (done) => {
+            let user = {
+                email: "test@test.se",
+                unique_id: 88
+            };
+
+            chai.request(server)
+                .post(`/v1/auth/customer/login?apiKey=${apiKey}`)
+                .send(user)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let result = res.body.data;
+
+                    result.should.have.property("message");
+                    result.message.should.equal("User logged in");
+
+                    result.should.have.property("user");
+                    result.user.should.equal("test@test.se");
+
+                    result.should.have.property("token");
+                    // token = res.body.data.token;
+
+                    done();
+                });
+        });
 
         it('should get 200 HAPPY PATH', (done) => {
             let user = {

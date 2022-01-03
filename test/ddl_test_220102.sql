@@ -25,7 +25,7 @@ INSERT INTO "bike" ("bikeid","name","image","description","max_speed","battery_c
 (3,'cykel3','puprleBike.jpg','En liten lila cykel',10,9000.0,'vacant',4200,50.1,50.1,NULL,NULL,4,1),
 (4,'cykel4','blueBike.jpg','En blÃ¥ cykel utmÃ¤rkt fÃ¶r terrÃ¤ng',15,8000.0,'vacant',7500,500.5,600.6,NULL,NULL,2,3),
 (5,'cykel5','yellowBike.jpg','En gul cykel helt enkelt',13,9000.0,'vacant',7500,100.1,100.1,NULL,NULL,3,3),
-(6,'cykel6','pinkBike.jpg','En rosa cykel',11,9500.0,'vacant',2000,10.1,10.1,NULL,NULL,-1,1);
+(6,'cykel6','pinkBike.jpg','En rosa cykel',11,9500.0,'rented',2000,10.1,10.1,NULL,NULL,-1,1);
 
 DROP TABLE IF EXISTS city;
 CREATE TABLE "city" (

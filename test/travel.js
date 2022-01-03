@@ -32,48 +32,53 @@ const testScript = process.env.TEST_SCRIPT || config.test_script;
 let token = "";
 
 describe('travel', () => {
+    //https://stackoverflow.com/questions/24723374/
+    //async-function-in-mocha-before-is-alway-finished-before-it-spec
     before(() => {
-        let db;
+        return new Promise((resolve) => {
+            let db;
 
-        db = database.getDb();
+            db = database.getDb();
 
-        const dataSql = fs.readFileSync(testScript).toString();
+            const dataSql = fs.readFileSync(testScript).toString();
 
-        // Convert the SQL string to array to run one at a time.
-        const dataArr = dataSql.toString().split(";");
+            // Convert the SQL string to array to run one at a time.
+            const dataArr = dataSql.toString().split(";");
 
-        //last row is empty, creates a last "empty" ('\n')-element
-        dataArr.splice(-1);
+            //last row is empty, creates a last "empty" ('\n')-element
+            dataArr.splice(-1);
 
-        // db.serialize ensures that queries are one after the other
-        //depending on which one came first in your `dataArr`
-        db.serialize(() => {
-            // db.run runs your SQL query against the DB
-            db.run("BEGIN TRANSACTION;");
-            // Loop through the `dataArr` and db.run each query
-            dataArr.forEach(query => {
-                if (query) {
-                    // Add the delimiter back to each query
-                    //before you run them
-                    query += ";";
-                    db.run(query, err => {
-                        if (err) {
-                            throw err;
-                        }
-                    });
-                }
+            // db.serialize ensures that queries are one after the other
+            //depending on which one came first in your `dataArr`
+            db.serialize(() => {
+                // db.run runs your SQL query against the DB
+                db.run("BEGIN TRANSACTION;");
+                // Loop through the `dataArr` and db.run each query
+                dataArr.forEach(query => {
+                    if (query) {
+                        // Add the delimiter back to each query
+                        //before you run them
+                        query += ";";
+                        db.run(query, err => {
+                            if (err) {
+                                throw err;
+                            }
+                        });
+                    }
+                });
+                db.run("COMMIT;");
             });
-            db.run("COMMIT;");
-        });
 
-        console.log("running DB");
+            console.log("running DB");
 
-        // Close the DB connection
-        db.close(err => {
-            if (err) {
-                return console.error(err.message);
-            }
-            // console.log("Closed the database connection.");
+            // Close the DB connection
+            db.close(err => {
+                if (err) {
+                    return console.error(err.message);
+                }
+                resolve();
+                // console.log("Closed the database connection.");
+            });
         });
     });
 
@@ -126,6 +131,28 @@ describe('travel', () => {
                 });
         });
 
+        it('should get 400 as we provide token but try to access another customer', (done) => {
+            chai.request(server)
+                .get(`/v1/travel/customer/1?apiKey=${apiKey}`)
+                .set("x-access-token", token)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+                    res.body.errors.should.be.an("object");
+
+                    let result = res.body.errors;
+
+                    result.should.have.property("title");
+                    result.title.should.equal("Unauthorized");
+
+                    result.should.have.property("message");
+                    let message = "Current user is not authorized to view data from other users";
+
+                    result.message.should.equal(message);
+
+                    done();
+                });
+        });
 
         it('should get 200 as we do provide token', (done) => {
             chai.request(server)
@@ -143,6 +170,86 @@ describe('travel', () => {
                     result[0].should.have.property("userid");
                     result[0].userid.should.equal(4);
 
+                    done();
+                });
+        });
+    });
+
+
+
+    //rent a bike as bike-simulator would do
+    //TODO fortsätt här
+    describe('POST /v1/travel/simulation', () => {
+        it('should get 404 as we try renting a non-existent bike', (done) => {
+            let customer = {
+                customerid: 1,
+                bikeid: 99
+            };
+
+            chai.request(server)
+                .post(`/v1/travel/simulation?apiKey=${apiKey}`)
+                .send(customer)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("errors");
+
+                    let reply = res.body.errors;
+
+                    reply.should.have.property("title");
+                    reply.title.should.equal("Not found");
+                    reply.should.have.property("message");
+                    reply.message.should.equal("The bike is not found");
+                    done();
+                });
+        });
+
+        it('should get 400 as we try renting an already rented bike', (done) => {
+            let customer = {
+                customerid: 1,
+                bikeid: 6
+            };
+
+            chai.request(server)
+                .post(`/v1/travel/simulation?apiKey=${apiKey}`)
+                .send(customer)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("errors");
+
+                    let reply = res.body.errors;
+
+                    reply.should.have.property("title");
+                    reply.title.should.equal("Bad request");
+                    reply.should.have.property("message");
+                    reply.message.should.contain("The bike is currently not available");
+                    done();
+                });
+        });
+        it('should get 201 as we rent a bike', (done) => {
+            let customer = {
+                customerid: 1,
+                bikeid: 1
+            };
+
+            chai.request(server)
+                .post(`/v1/travel/simulation?apiKey=${apiKey}`)
+                .send(customer)
+                .end((err, res) => {
+                    console.log(res.body);
+                    res.should.have.status(201);
+                    res.body.should.be.an("object");
+                    res.body.should.have.property("data");
+
+                    let reply = res.body.data;
+
+                    reply.should.have.property("type");
+                    reply.type.should.equal("success");
+                    reply.should.have.property("message");
+                    reply.message.should.equal("Bike rented");
+                    reply.should.have.property("bikeid");
+                    reply.bikeid.should.equal(customer.bikeid);
                     done();
                 });
         });
