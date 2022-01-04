@@ -13,33 +13,6 @@ try {
 }
 
 const bike = {
-    /*
-        get all bikes
-    */
-    getAllBikes: function (res, req) {
-        let db;
-
-        db = database.getDb();
-
-        let sql = `SELECT * FROM bike;`;
-
-        db.all(sql, [], (err, rows) => {
-            if (err) {
-                return res.status(400).json({
-                    errors: {
-                        status: 400,
-                        path: `/bike${req.path}`,
-                        title: "Bad request",
-                        message: err.message
-                    }
-                });
-            }
-            return res.status(200).json({
-                "data": rows
-            });
-        });
-    },
-
     //get Bike with specific id
     getSpecificBike: function (res, req) {
         let db;
