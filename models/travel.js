@@ -227,7 +227,8 @@ const travel = {
     },
     /*
         customer ends bike rental
-        bike added to cancelQueue
+        bike ride saved and variable customerCancel
+        is set to "true"
     */
     returnBike: function (res, req) {
         //TEST loggedInCustomerId = req.body.userid,
@@ -299,10 +300,12 @@ const travel = {
         //return error message
         if (errors.length) {
             return res.status(400).json({
-                status: 400,
-                path: `/v1/travel${req.path}`,
-                title: "Missing input information",
-                message: errors.join(",")
+                errors: {
+                    status: 400,
+                    path: `/v1/travel${req.path}`,
+                    title: "Missing input information",
+                    message: errors.join(",")
+                }
             });
         }
 

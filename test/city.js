@@ -240,7 +240,7 @@ describe('city', () => {
                     let reply = res.body.data;
 
                     reply.should.be.an("array");
-                    reply.should.have.lengthOf(2);
+                    reply.should.have.lengthOf(3);
                     reply[0].name.should.be.a('string').that.equals("cykel3");
 
                     done();

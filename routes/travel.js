@@ -32,12 +32,6 @@ router.get('/rented',
     (req, res) => travelModel.getRentQueue(res)
 );
 
-//esc can get all bikeids from cancelQueue, empty queue
-router.get('/canceled',
-    (req, res) => travelModel.getCancelQueue(res)
-);
-
-
 //customer simulator can rent a bike
 router.post('/simulation',
     (req, res) => travelModel.rentBikeSimulation(res, req)
