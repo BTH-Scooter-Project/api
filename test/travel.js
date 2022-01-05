@@ -177,7 +177,7 @@ describe('travel', () => {
 
     //rent a bike as bike-simulator would do
     describe('POST /v1/travel/simulation', () => {
-        it('should get 404 as we try renting a non-existent bike', (done) => {
+        it('should get 400 as we try renting a non-existent bike', (done) => {
             let customer = {
                 customerid: 1,
                 bikeid: 99
@@ -187,14 +187,14 @@ describe('travel', () => {
                 .post(`/v1/travel/simulation?apiKey=${apiKey}`)
                 .send(customer)
                 .end((err, res) => {
-                    res.should.have.status(404);
+                    res.should.have.status(400);
                     res.body.should.be.an("object");
                     res.body.should.have.property("errors");
 
                     let reply = res.body.errors;
 
                     reply.should.have.property("title");
-                    reply.title.should.equal("Not found");
+                    reply.title.should.equal("Bad request");
                     reply.should.have.property("message");
                     reply.message.should.equal("The bike is not found");
                     done();

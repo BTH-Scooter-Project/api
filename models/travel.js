@@ -96,9 +96,9 @@ const travel = {
 
         db.get(sql, params, function (err, row) {
             if (err) {
-                return res.status(400).json({
+                return res.status(500).json({
                     errors: {
-                        status: 400,
+                        status: 500,
                         path: `/v1/travel${req.path}`,
                         title: "Bad request",
                         message: err.message
@@ -108,11 +108,11 @@ const travel = {
             //check if row exists ie bikeId exists
             return row
                 ? travel.createTravel(res, req, row, db)
-                : res.status(404).json({
+                : res.status(400).json({
                     errors: {
-                        status: 404,
+                        status: 400,
                         path: `/v1/travel${req.path}`,
-                        title: "Not found",
+                        title: "Bad request",
                         message: "The bike is not found"
                     }
                 });
