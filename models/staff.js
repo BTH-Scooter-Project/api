@@ -17,10 +17,10 @@ const staff = {
 
         db.all(sql, [], (err, rows) => {
             if (err) {
-                return res.status(400).json({
+                return res.status(500).json({
                     errors: {
-                        status: 400,
-                        path: "/customer",
+                        status: 500,
+                        path: "/v1/auth/staff",
                         title: "Bad request",
                         message: err.message
                     }

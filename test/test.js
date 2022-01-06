@@ -25,7 +25,7 @@ describe('app', () => {
 
         db = database.getDb();
 
-        const dataSql = fs.readFileSync("test/test2_db.sql").toString();
+        const dataSql = fs.readFileSync("test/script/test2_db.sql").toString();
 
         // Convert the SQL string to array to run one at a time.
         const dataArr = dataSql.toString().split(";");
