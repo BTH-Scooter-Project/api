@@ -1,0 +1,19 @@
+checks:
+    javascript: true
+build:
+  nodes:
+    coverage:
+      tests:
+        override:
+          - command: "npm run scrutinizer-test"
+            coverage:
+              file: coverage/clover.xml
+
+              # These formats are supported:
+              # clover, cobertura, jacoco, python-cc, ruby-cc, go-cc, lcov
+              format: clover
+          - js-scrutinizer-run
+
+filter:
+    excluded_paths:
+        - tests/*
