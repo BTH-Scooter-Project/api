@@ -2,11 +2,12 @@ var express = require('express');
 var router = express.Router();
 const authModel = require("../models/auth.js");
 const travelModel = require("../models/travel.js");
+const customerModel = require("../models/customer.js");
 
 //show logged in customer's travels
 router.get('/customer/:id',
     (req, res, next) => authModel.checkToken(req, res, next),
-    (req, res) => travelModel.getCustomerTravel(res, req)
+    (req, res) => customerModel.getCustomerTravel(res, req)
 );
 
 

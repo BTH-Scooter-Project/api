@@ -8,66 +8,6 @@ let rentQueue = [];
 let rentList = [];
 
 const travel = {
-    /*
-        get all travels for a certain customer
-    */
-    getCustomerTravel: function (res, req) {
-        let db;
-
-        db = database.getDb();
-
-        //check which customer is logged in
-        let loggedInCustomerId = req.user.id;
-
-        //if a request is sent to view any other customers data except the
-        //customers own data, it will be denied.
-        if (loggedInCustomerId != req.params.id) {
-            return res.status(400).json({
-                errors: {
-                    status: 401,
-                    path: `/v1/travel${req.path}`,
-                    title: "Unauthorized",
-                    message: "Current user is not authorized to view data from other users",
-                }
-            });
-        }
-
-        var sql ='SELECT * from travel_history WHERE userid = ?;';
-        var params =[req.params.id];
-
-        db.all(sql, params, function (err, rows) {
-            if (err) {
-                return res.status(400).json({
-                    errors: {
-                        status: 400,
-                        path: `/v1/travel${req.path}`,
-                        title: "Bad request",
-                        message: err.message
-                    }
-                });
-            }
-            //check if row exists ie id exists, otherwise no travels has occurred
-            if (rows) {
-                //if a message should be sent when there are no travels:
-                // if (rows.length == 0) {
-                //     return res.status(200).json({
-                //         "data": "No travels to show yet."
-                //     });
-                // }
-                return res.status(200).json({
-                    "data": rows
-                });
-            }
-            return res.status(404).json({
-                errors: {
-                    status: 404,
-                    path: `/v1/travel${req.path}`,
-                    title: "Not found",
-                    message: "Customer not found"
-                }
-            });
-        });
-    },
     /* the customer simulation can rent a bike */
     rentBikeSimulation: function(res, req) {
         //get customerid into user.id
@@ -125,10 +65,6 @@ const travel = {
     */
     createTravel: function(res, req, bike, db) {
         //check which customer is logged in
-
-        //TEST then get id from body, need to remove auth.checkToken in route
-        // let loggedInCustomerId = (req.body.test) ? req.body.userid : req.user.id;
-
         let loggedInCustomerId = req.user.id;
 
         //check if bike is available = vacant
@@ -184,9 +120,6 @@ const travel = {
             //add travel to rentQueue
             rentQueue.unshift(newEvent);
 
-            // console.log("added travel:");
-            // console.log(rentQueue);
-
             return res.status(201).json({
                 data: {
                     type: "success",
@@ -219,8 +152,6 @@ const travel = {
 
         //empty rentQueue
         rentQueue = [];
-
-        // console.log(rentList);
 
         //return list of bikeids
         return res.status(200).json(bikeids);
@@ -310,31 +241,6 @@ const travel = {
         }
 
         let bikeId = req.params.bikeid;
-
-        //TEST
-        // rentList = [
-        //     {
-        //         customerid: '2',
-        //         bikeid: '2',
-        //         cityid: '2',
-        //         timestamp: new Date(),
-        //         battery_capacity: 4000,
-        //         gps_lat_start: 500.5,
-        //         gps_lon_start: 600.6,
-        //         start_station: 2,
-        //
-        //     },
-        //     {
-        //         customerid: '1',
-        //         bikeid: '1',
-        //         cityid: '1',
-        //         timestamp: new Date(),
-        //         battery_capacity: 8000,
-        //         gps_lat_start: 200.2,
-        //         gps_lon_start: 100.23,
-        //         start_station: -1,
-        //     }
-        // ];
 
         //check if bike is in rentList
         let bikeIndex = rentList.findIndex(v => v.bikeid == bikeId);
@@ -468,9 +374,6 @@ const travel = {
         //calculate price of travel TODO
         bike.price = travel.calcTravelPrice(bike);
 
-        // console.log("price for travel:");
-        // console.log(bike.price);
-
         //update bike status to 'vacant' and set new pos, battery etc
         //insert new travel into travel_history
         var sqlBike = `UPDATE BIKE
@@ -581,7 +484,6 @@ const travel = {
         if (bike.end_station > 0) {
             //if customer has retrieved a bike outside of a station
             if (bike.start_station < 0) {
-                console.log("retrieving bike outside of station");
                 price -= startFeeDecrease;
             }
             // if customer gets and retrieves at station
@@ -599,42 +501,6 @@ const travel = {
         ie bikes in rentList
     */
     getRentedBikes: function (res, req) {
-        //TEST
-        // rentList = [
-        //     {
-        //         customerid: 2,
-        //         bikeid: 3,
-        //         timestamp: 1638954124713,
-        //         cityid: 1,
-        //         battery_capacity: 9000,
-        //         gps_lat_start: 500.1,
-        //         gps_lon_start: 500.1,
-        //         start_station: 1,
-        //         battery_level: '222',
-        //         gps_lat: '456.456',
-        //         gps_lon: '500.5',
-        //         rent_time: '200',
-        //         canceled: 'false',
-        //         destination_reached: 'false'
-        //     },
-        //     {
-        //         customerid: 3,
-        //         bikeid: 4,
-        //         timestamp: 1638954124713,
-        //         cityid: 2,
-        //         battery_capacity: 9000,
-        //         gps_lat_start: 100.1,
-        //         gps_lon_start: 100.1,
-        //         start_station: 1,
-        //         battery_level: '222',
-        //         gps_lat: '456.456',
-        //         gps_lon: '500.5',
-        //         rent_time: '200',
-        //         canceled: 'false',
-        //         destination_reached: 'false'
-        //     }
-        // ];
-
         let cityId = req.params.id;
         let currBikes = [];
 
