@@ -1,7 +1,5 @@
 [![Node.js CI](https://github.com/BTH-Scooter-Project/api/actions/workflows/node.js.yml/badge.svg)](https://github.com/BTH-Scooter-Project/api/actions/workflows/node.js.yml)
-
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/BTH-Scooter-Project/api/badges/quality-score.png?b=main&s=b654af84a0213c23ad8fe12c34b2e35472f1afc4)](https://scrutinizer-ci.com/g/BTH-Scooter-Project/api/?branch=main)
-
 [![Code Coverage](https://scrutinizer-ci.com/g/BTH-Scooter-Project/api/badges/coverage.png?b=main&s=c5716d62fd9d3b7473241833de5b63b3035333a1)](https://scrutinizer-ci.com/g/BTH-Scooter-Project/api/?branch=main)
 
 REST-API
@@ -14,6 +12,11 @@ Use API locally
 To use API locally: Download and run *npm install*. Start the application with *npm start* (localhost:1337)
 
 Use *npm test* to run test suite including post-test with linter ESLint.
+
+Use API with the rest of the system (Docker)
+-------------
+See https://github.com/BTH-Scooter-Project/esc for docker-compose file and instructions
+on running the whole system in Docker.
 
 Test-routes
 -------------
